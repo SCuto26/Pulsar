@@ -6,6 +6,8 @@
 
 <p align="center"><em>A language that pulses with clarity.</em></p>
 
+<p align="center"><sub>Stefan Cutovic &nbsp;·&nbsp; CMSI 3802
+
 ---
 
 ## What is Pulsar?
