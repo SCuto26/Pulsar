@@ -16,17 +16,19 @@ Pulsar {
             | OutputStmt
             | Call                -- callStmt
 
-  // define function: add (x and y) { ... }
-  FunctionDecl = define function ":" id "(" Params ")" Block
+  // define function: add(x as number, y as number) outputs number { ... }
+  FunctionDecl = define function ":" id "(" Params ")" outputs Type Block
 
-  // Parameters separated by "and": x and y and z
-  Params = ListOf<id, ",">
+  // Parameters: x as number, y as string
+  Params    = ListOf<Param, ",">
+  Param     = id as Type
 
-  // group Student: name, gpa, grade
-  GroupDecl = group id ":" NonemptyListOf<id, ",">
+  // group Student: name as string, gpa as number
+  GroupDecl  = group id ":" NonemptyListOf<GroupField, ",">
+  GroupField = id as Type
 
-  // let x be 5
-  VarDecl = let id be Exp
+  // let x as number be 5
+  VarDecl = let id as Type be Exp
 
   // x be 10  (reassignment)
   Assignment = id be Exp
@@ -54,6 +56,13 @@ Pulsar {
 
   // Function call (used both as expression and statement)
   Call = id "(" ListOf<Exp, ","> ")"
+
+  // ── Types ──────────────────────────────────────────────────────────────────
+  Type = list containing Type   -- list
+       | number                 -- number
+       | string                 -- string
+       | boolean                -- boolean
+       | void                   -- void
 
   // ── Expressions (lowest to highest precedence) ──
 
@@ -86,63 +95,63 @@ Pulsar {
        | "-" Exp6       -- neg
        | Primary
 
-  Primary = Call                                -- call
-          | id "." id                           -- field
-          | numeral                             -- num
-          | strlit                              -- str
-          | true                               -- true
-          | false                              -- false
-          | "[" ListOf<Exp, ","> "]"           -- list
+  Primary = Call                                  -- call
+          | id "." id                             -- field
+          | numeral                               -- num
+          | strlit                                -- str
+          | true                                  -- true
+          | false                                 -- false
+          | "[" ListOf<Exp, ","> "]"              -- list
           | "{" NonemptyListOf<MapEntry, ","> "}" -- map
-          | "(" Exp ")"                        -- parens
-          | id                                 -- id
+          | "(" Exp ")"                           -- parens
+          | id                                    -- id
 
   MapEntry = strlit "->" Exp
 
   // ── Multi-word keyword tokens (lexical) ──
 
-  // "as long as" tokenized as one lexical rule
   asLongAs = "as" space+ "long" space+ "as" ~idchar
-
-  // "go through" tokenized as one lexical rule
   goThrough = "go" space+ "through" ~idchar
-
-  // "is greater than or equal to"
   isGreaterThanOrEqualTo = "is" space+ "greater" space+ "than" space+ "or" space+ "equal" space+ "to" ~idchar
+  isLessThanOrEqualTo    = "is" space+ "less"    space+ "than" space+ "or" space+ "equal" space+ "to" ~idchar
+  isGreaterThan          = "is" space+ "greater" space+ "than" ~idchar
+  isLessThan             = "is" space+ "less"    space+ "than" ~idchar
 
-  // "is less than or equal to"
-  isLessThanOrEqualTo = "is" space+ "less" space+ "than" space+ "or" space+ "equal" space+ "to" ~idchar
-
-  // "is greater than"
-  isGreaterThan = "is" space+ "greater" space+ "than" ~idchar
-
-  // "is less than"
-  isLessThan = "is" space+ "less" space+ "than" ~idchar
+  // "list containing" as a type prefix
+  listContaining = "list" space+ "containing" ~idchar
 
   // ── Single keyword tokens ──
-  let       = "let" ~idchar
-  be        = "be" ~idchar
-  define    = "define" ~idchar
-  function  = "function" ~idchar
-  group     = "group" ~idchar
-  display   = "display" ~idchar
-  output    = "output" ~idchar
-  stop      = "stop" ~idchar
-  if        = "if" ~idchar
-  otherwise = "otherwise" ~idchar
-  each      = "each" ~idchar
-  in        = "in" ~idchar
-  and       = "and" ~idchar
-  or        = "or" ~idchar
-  not       = "not" ~idchar
-  is        = "is" ~idchar
-  true      = "true" ~idchar
-  false     = "false" ~idchar
+  let        = "let"        ~idchar
+  be         = "be"         ~idchar
+  as         = "as"         ~idchar
+  outputs    = "outputs"    ~idchar
+  define     = "define"     ~idchar
+  function   = "function"   ~idchar
+  group      = "group"      ~idchar
+  display    = "display"    ~idchar
+  output     = "output"     ~idchar
+  stop       = "stop"       ~idchar
+  if         = "if"         ~idchar
+  otherwise  = "otherwise"  ~idchar
+  each       = "each"       ~idchar
+  in         = "in"         ~idchar
+  and        = "and"        ~idchar
+  or         = "or"         ~idchar
+  not        = "not"        ~idchar
+  is         = "is"         ~idchar
+  true       = "true"       ~idchar
+  false      = "false"      ~idchar
+  void       = "void"       ~idchar
+  list       = "list"       ~idchar
+  containing = "containing" ~idchar
+  number     = "number"     ~idchar
+  string     = "string"     ~idchar
+  boolean    = "boolean"    ~idchar
 
-  // ── Reserved keyword list (identifiers cannot match these) ──
-  keyword = let | be | define | function | group | display | output
-          | stop | if | otherwise | each | in | and | or | not
-          | is | true | false
+  // ── Reserved keyword list ──
+  keyword = let | be | as | outputs | define | function | group | display
+          | output | stop | if | otherwise | each | in | and | or | not
+          | is | true | false | void | list | containing | number | string | boolean
 
   // ── Identifiers ──
   id      = ~keyword letter idchar*

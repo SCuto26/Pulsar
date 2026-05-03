@@ -4,112 +4,132 @@ import parse from '../src/parser.js'
 import analyze from '../src/analyzer.js'
 import * as core from '../src/core.js'
 
-// Convenience: run the full front-end pipeline on a source string
 const check = src => analyze(parse(src))
 
-// Programs expected to be semantically correct
 const semanticChecks = [
-  // Variable declarations and usage
-  ['number variable',                 'let x be 5'],
-  ['string variable',                 'let name be "hello"'],
-  ['boolean variable',                'let flag be true'],
-  ['variable used after declaration', 'let x be 5\ndisplay x'],
-  ['reassignment',                    'let x be 5\nx be 10'],
-  ['reassignment to expression',      'let x be 5\nx be x + 1'],
-  ['multiple variables',              'let x be 1\nlet y be 2\nlet z be x + y'],
+  // Variable declarations
+  ['number variable',                   'let x as number be 5'],
+  ['string variable',                   'let name as string be "Stefan"'],
+  ['boolean variable',                  'let flag as boolean be true'],
+  ['list containing number variable',           'let scores as list containing number be [1, 2, 3]'],
+  ['list containing string variable',           'let names as list containing string be ["a", "b"]'],
+  ['variable used after declaration',   'let x as number be 5\ndisplay x'],
+  ['reassignment same type',            'let x as number be 5\nx be 10'],
+  ['reassignment with expression',      'let x as number be 5\nx be x + 1'],
 
   // Arithmetic
-  ['addition of variables',           'let x be 1\nlet y be 2\nlet z be x + y'],
-  ['chained arithmetic',              'let x be 2 + 3 * 4 - 1'],
-  ['parenthesized arithmetic',        'let x be (2 + 3) * 4'],
-  ['negation',                        'let x be -5'],
+  ['number arithmetic',                 'let x as number be 2 + 3'],
+  ['chained arithmetic',                'let x as number be 2 + 3 * 4'],
+  ['negation',                          'let x as number be -5'],
+  ['string concatenation',              'let s as string be "hello" + " world"'],
 
-  // Boolean expressions
-  ['boolean and',                     'let x be true and false'],
-  ['boolean or',                      'let x be false or true'],
-  ['boolean not',                     'let x be not true'],
-  ['chained boolean',                 'let x be true and false or true'],
+  // Boolean operations
+  ['boolean and',                       'let x as boolean be true and false'],
+  ['boolean or',                        'let x as boolean be false or true'],
+  ['boolean not',                       'let x as boolean be not true'],
 
   // Comparisons
-  ['is greater than',                 'let x be 5\nlet y be x is greater than 3'],
-  ['is less than',                    'let x be 5\nlet y be x is less than 10'],
-  ['is equal',                        'let x be 5\nlet y be x is 5'],
-  ['is not equal',                    'let x be 5\nlet y be x is not 3'],
-  ['gte',                             'let x be 5\nlet y be x is greater than or equal to 5'],
-  ['lte',                             'let x be 5\nlet y be x is less than or equal to 5'],
-
-  // Display
-  ['display string literal',          'display "hello"'],
-  ['display number literal',          'display 42'],
-  ['display variable',                'let x be 5\ndisplay x'],
-  ['display expression',              'let x be 5\ndisplay x + 1'],
+  ['number comparison gt',              'let x as number be 5\nlet y as boolean be x is greater than 3'],
+  ['number comparison lt',              'let x as number be 5\nlet y as boolean be x is less than 10'],
+  ['number equality',                   'let x as number be 5\nlet y as boolean be x is 5'],
+  ['number inequality',                 'let x as number be 5\nlet y as boolean be x is not 3'],
+  ['string equality',                   'let s as string be "hi"\nlet y as boolean be s is "hi"'],
 
   // Functions
-  ['function no params',              'define function: greet() { display "hi" }'],
-  ['function with param',             'define function: double(x) { output x * 2 }'],
-  ['function with two params',        'define function: add(x, y) { output x + y }'],
-  ['function call as statement',      'define function: f() { display "hi" }\nf()'],
-  ['function call in expression',     'define function: f(x) { output x }\nlet y be f(5)'],
-  ['output inside function',          'define function: f(x) { output x }'],
-  ['function using its own param',    'define function: sq(n) { output n * n }'],
-  ['function call with multiple args','define function: add(x, y) { output x + y }\nlet z be add(3, 4)'],
-  ['call result in expression',       'define function: f(x) { output x + 1 }\nlet y be f(3) + 1'],
-
-  // Recursion: function can call itself (placeholder added before body is analyzed)
-  ['recursive function reference',    'define function: f(x) { display f }\nf(1)'],
+  ['void function no params',           'define function: greet() outputs void { display "hi" }'],
+  ['function returns number',           'define function: double(n as number) outputs number { output n * 2 }'],
+  ['function returns string',           'define function: label() outputs string { output "ok" }'],
+  ['function returns boolean',          'define function: yes() outputs boolean { output true }'],
+  ['function two params',               'define function: add(x as number, y as number) outputs number { output x + y }'],
+  ['function call as statement',        'define function: f() outputs void { display "x" }\nf()'],
+  ['function call in expression',       'define function: f(x as number) outputs number { output x }\nlet y as number be f(5)'],
+  ['function call with matching types', 'define function: f(s as string) outputs void { display s }\nf("hello")'],
+  ['recursive function',                'define function: f(n as number) outputs number { output f(n) }'],
 
   // Groups
-  ['group declaration',               'group Point: x, y'],
-  ['group with many fields',          'group Student: name, gpa, year'],
+  ['group declaration',                 'group Point: x as number, y as number'],
+  ['group mixed types',                 'group Student: name as string, gpa as number'],
 
-  // If statements
-  ['short if',                        'let x be 5\nif x { display x }'],
-  ['if otherwise',                    'let x be 5\nif x { display "yes" } otherwise { display "no" }'],
-  ['if with variable in test',        'let x be 1\nif x { display "ok" }'],
-  ['nested if',                       'let x be 1\nif x { if x { display x } }'],
+  // If statements — test must be boolean
+  ['short if with boolean var',         'let flag as boolean be true\nif flag { display "yes" }'],
+  ['if otherwise with boolean',         'let flag as boolean be false\nif flag { display "yes" } otherwise { display "no" }'],
+  ['if with boolean expression',        'let x as number be 5\nif x is greater than 3 { display x }'],
 
-  // While loop
-  ['while loop',                      'let x be 1\nas long as x { display x }'],
-  ['while with stop',                 'let x be 1\nas long as x { stop }'],
-  ['while loop using outer var',      'let x be 1\nas long as x { display x }'],
+  // While loop — test must be boolean
+  ['while with boolean var',            'let go as boolean be true\nas long as go { display "looping" }'],
+  ['while with boolean expression',     'let x as number be 5\nas long as x is greater than 0 { display x }'],
+  ['while with stop',                   'let go as boolean be true\nas long as go { stop }'],
 
-  // Stop inside nested if inside loop
-  ['stop in if inside loop',          'let x be 1\nas long as x { if x { stop } }'],
+  // ForEach
+  ['foreach over list containing number',       'let nums as list containing number be [1,2]\ngo through each n in nums { display n }'],
+  ['foreach over list containing string',       'let words as list containing string be ["a","b"]\ngo through each w in words { display w }'],
+  ['foreach with stop',                 'let nums as list containing number be [1]\ngo through each n in nums { stop }'],
 
-  // ForEach loop
-  ['foreach loop',                    'let items be 1\ngo through each item in items { display item }'],
-  ['foreach with stop',               'let items be 1\ngo through each item in items { stop }'],
-
-  // Collections
-  ['list literal',                    'let x be [1, 2, 3]'],
-  ['empty list',                      'let x be []'],
-  ['map literal',                     'let m be {"name" -> "Stefan"}'],
-  ['map multiple entries',            'let m be {"a" -> 1, "b" -> 2}'],
-
-  // Scoping: variables declared in outer scope available inside blocks
-  ['outer var accessible in if',      'let x be 5\nif x { display x }'],
-  ['outer var accessible in while',   'let x be 1\nas long as x { let y be x\ndisplay y }'],
+  // Scoping
+  ['outer var in if body',              'let x as number be 5\nlet flag as boolean be true\nif flag { display x }'],
+  ['outer var in while body',           'let x as number be 5\nlet go as boolean be true\nas long as go { display x }'],
+  ['stop in if inside loop',            'let go as boolean be true\nas long as go { if go { stop } }'],
 ]
 
-// Programs that are syntactically correct but have semantic errors
 const semanticErrors = [
-  ['undeclared variable in expression',   'let x be y + 1',                   /has not been declared/],
-  ['undeclared variable in display',      'display x',                         /has not been declared/],
-  ['undeclared variable assignment',      'x be 10',                           /has not been declared/],
-  ['undeclared call',                     'foo()',                              /has not been declared/],
-  ['undeclared in if test',               'if x { display "hi" }',             /has not been declared/],
-  ['undeclared collection in foreach',    'go through each x in items { display x }', /has not been declared/],
-  ['redeclared variable',                 'let x be 5\nlet x be 10',           /already declared/],
-  ['redeclared function',                 'define function: f() { display "a" }\ndefine function: f() { display "b" }', /already declared/],
-  ['redeclared param',                    'define function: f(x, x) { output x }', /already declared/],
-  ['stop outside loop',                   'stop',                              /'stop' can only appear inside a loop/],
-  ['stop outside loop in function',       'define function: f() { stop }',     /'stop' can only appear inside a loop/],
-  ['output outside function',             'output 5',                          /'output' can only appear inside a function/],
-  ['output at top level',                 'let x be 5\noutput x',              /'output' can only appear inside a function/],
-  ['field on undeclared variable',        'display x.name',                    /has not been declared/],
-  // Field validation fires when the object entity is directly a GroupDeclaration.
-  // Accessing through a Variable does not trigger compile-time field checks.
-  ['nonexistent field on group directly',  'group Point: x, y\ndisplay Point.z', /has no field/],
+  // Type mismatch on declaration
+  ['string assigned to number',         'let x as number be "hello"',                /Cannot assign/],
+  ['number assigned to string',         'let s as string be 5',                      /Cannot assign/],
+  ['number assigned to boolean',        'let b as boolean be 1',                     /Cannot assign/],
+  ['boolean assigned to number',        'let x as number be true',                   /Cannot assign/],
+
+  // Type mismatch on reassignment
+  ['reassign wrong type',               'let x as number be 5\nx be "hello"',        /Cannot assign/],
+
+  // Function return type mismatch
+  ['return string from number fn',      'define function: f() outputs number { output "oops" }', /Cannot assign/],
+  ['return number from string fn',      'define function: f() outputs string { output 42 }',     /Cannot assign/],
+  ['return number from boolean fn',     'define function: f() outputs boolean { output 1 }',     /Cannot assign/],
+
+  // Argument type mismatch
+  ['string arg to number param',        'define function: f(x as number) outputs void { display x }\nf("bad")', /Cannot assign/],
+  ['number arg to string param',        'define function: f(s as string) outputs void { display s }\nf(42)',    /Cannot assign/],
+  ['boolean arg to number param',       'define function: f(x as number) outputs void { display x }\nf(true)', /Cannot assign/],
+
+  // Argument count
+  ['too many arguments',                'define function: f(x as number) outputs void { display x }\nf(1, 2)', /expects 1/],
+  ['too few arguments',                 'define function: f(x as number) outputs void { display x }\nf()',     /expects 1/],
+  ['args to void no-param fn',          'define function: f() outputs void { display "x" }\nf(1)',            /expects 0/],
+
+  // Calling non-function
+  ['call a variable',                   'let x as number be 5\nx(1)',                /'x' is not a function/],
+
+  // Operator type errors
+  ['and on numbers',                    'let x as number be 5\nlet y as boolean be x and true',       /Expected boolean/],
+  ['or on number and boolean',          'let x as number be 1\nlet y as number be 2\nlet z as boolean be x or y', /Expected boolean/],
+  ['not on number',                     'let x as number be 5\nlet y as boolean be not x',            /Expected boolean/],
+  ['subtract strings',                  'let s as string be "a"\nlet t as string be "b"\nlet x as number be s - t', /Expected number/],
+  ['compare number and string',         'let x as number be 5\nlet s as string be "hi"\nlet y as boolean be x is s', /Cannot compare/],
+
+  // If/while test must be boolean
+  ['if test is number',                 'let x as number be 5\nif x { display x }',                   /Expected boolean/],
+  ['if test is string',                 'let s as string be "hi"\nif s { display s }',                /Expected boolean/],
+  ['while test is number',              'let x as number be 1\nas long as x { display x }',           /Expected boolean/],
+
+  // ForEach on non-list
+  ['foreach on number',                 'let x as number be 5\ngo through each n in x { display n }', /Expected a list/],
+  ['foreach on string',                 'let s as string be "hi"\ngo through each c in s { display c }', /Expected a list/],
+
+  // Scope errors
+  ['undeclared variable',               'display x',                                 /has not been declared/],
+  ['undeclared in expression',          'let x as number be y + 1',                  /has not been declared/],
+  ['undeclared function call',          'foo()',                                      /has not been declared/],
+  ['redeclared variable',               'let x as number be 5\nlet x as number be 10', /already declared/],
+  ['redeclared function',               'define function: f() outputs void { display "a" }\ndefine function: f() outputs void { display "b" }', /already declared/],
+  ['duplicate param names',             'define function: f(x as number, x as number) outputs void { display x }', /already declared/],
+
+  // stop/output placement
+  ['stop outside loop',                 'stop',                                      /'stop' can only appear inside a loop/],
+  ['stop in function not in loop',      'define function: f() outputs void { stop }',  /'stop' can only appear inside a loop/],
+  ['output outside function',           'output 5',                                  /'output' can only appear inside a function/],
+
+  // Duplicate group fields
+  ['duplicate group fields',            'group Bad: x as number, x as string',       /duplicate fields/],
 ]
 
 describe('The analyzer', () => {
@@ -119,77 +139,68 @@ describe('The analyzer', () => {
     })
   }
 
-  for (const [scenario, source, errorMessagePattern] of semanticErrors) {
+  for (const [scenario, source, pattern] of semanticErrors) {
     it(`throws on ${scenario}`, () => {
-      assert.throws(() => check(source), errorMessagePattern)
+      assert.throws(() => check(source), pattern)
     })
   }
 
-  // Verify the exact shape of the AST for a simple program
-  it('produces the expected representation for a variable declaration', () => {
-    const program = check('let x be 5')
-    assert.equal(program.kind, 'Program')
-    assert.equal(program.statements.length, 1)
-    const decl = program.statements[0]
+  // ── AST shape verification ─────────────────────────────────────────────────
+
+  it('variable declaration carries declared type', () => {
+    const prog = check('let x as number be 5')
+    const decl = prog.statements[0]
     assert.equal(decl.kind, 'VariableDeclaration')
-    assert.equal(decl.variable.kind, 'Variable')
+    assert.equal(decl.variable.type, core.NUMBER_TYPE)
     assert.equal(decl.variable.name, 'x')
-    assert.equal(Number(decl.initializer), 5)
   })
 
-  it('produces the expected representation for a display statement', () => {
-    const program = check('display "hello"')
-    assert.equal(program.statements[0].kind, 'DisplayStatement')
-  })
-
-  it('produces the expected representation for a function declaration', () => {
-    const program = check('define function: add(x, y) { output x + y }')
-    const fn = program.statements[0]
+  it('function declaration carries return type and param types', () => {
+    const prog = check('define function: add(x as number, y as number) outputs number { output x + y }')
+    const fn = prog.statements[0]
     assert.equal(fn.kind, 'FunctionDeclaration')
-    assert.equal(fn.name, 'add')
+    assert.equal(fn.returnType, core.NUMBER_TYPE)
     assert.equal(fn.params.length, 2)
-    assert.equal(fn.params[0].name, 'x')
-    assert.equal(fn.params[1].name, 'y')
-    assert.equal(fn.body.length, 1)
-    assert.equal(fn.body[0].kind, 'OutputStatement')
+    assert.equal(fn.params[0].type, core.NUMBER_TYPE)
+    assert.equal(fn.params[1].type, core.NUMBER_TYPE)
   })
 
-  it('produces the expected representation for a binary expression', () => {
-    const program = check('let x be 3 + 4')
-    const init = program.statements[0].initializer
-    assert.equal(init.kind, 'BinaryExpression')
-    assert.equal(init.op, '+')
-    assert.equal(Number(init.left), 3)
-    assert.equal(Number(init.right), 4)
-  })
-
-  it('produces the expected representation for an if/otherwise statement', () => {
-    const program = check('let x be 1\nif x { display "yes" } otherwise { display "no" }')
-    const stmt = program.statements[1]
-    assert.equal(stmt.kind, 'IfStatement')
-    assert.equal(stmt.consequent.length, 1)
-    assert.equal(stmt.alternate.length, 1)
-  })
-
-  it('produces the expected representation for a while loop', () => {
-    const program = check('let x be 1\nas long as x { display x }')
-    const loop = program.statements[1]
-    assert.equal(loop.kind, 'WhileLoop')
-    assert.equal(loop.body.length, 1)
-  })
-
-  it('produces the expected representation for a foreach loop', () => {
-    const program = check('let items be 1\ngo through each item in items { display item }')
-    const loop = program.statements[1]
-    assert.equal(loop.kind, 'ForEachLoop')
-    assert.equal(loop.iterator.name, 'item')
-  })
-
-  it('produces the expected representation for a group declaration', () => {
-    const program = check('group Student: name, gpa')
-    const g = program.statements[0]
+  it('group declaration carries typed fields', () => {
+    const prog = check('group Student: name as string, gpa as number')
+    const g = prog.statements[0]
     assert.equal(g.kind, 'GroupDeclaration')
-    assert.equal(g.name, 'Student')
-    assert.deepEqual(g.fields, ['name', 'gpa'])
+    assert.equal(g.fields[0].name, 'name')
+    assert.equal(g.fields[0].type, core.STRING_TYPE)
+    assert.equal(g.fields[1].name, 'gpa')
+    assert.equal(g.fields[1].type, core.NUMBER_TYPE)
+  })
+
+  it('binary expression carries result type', () => {
+    const prog = check('let x as number be 3 + 4')
+    const init = prog.statements[0].initializer
+    assert.equal(init.kind, 'BinaryExpression')
+    assert.equal(init.type, core.NUMBER_TYPE)
+  })
+
+  it('call node carries return type', () => {
+    const prog = check('define function: f(x as number) outputs string { output "ok" }\nlet s as string be f(1)')
+    const call = prog.statements[1].initializer
+    assert.equal(call.kind, 'Call')
+    assert.equal(call.type, core.STRING_TYPE)
+  })
+
+  it('list expression carries list type with correct base', () => {
+    const prog = check('let scores as list containing number be [1, 2, 3]')
+    const list = prog.statements[0].initializer
+    assert.equal(list.kind, 'ListExpression')
+    assert.equal(list.type.kind, 'ListType')
+    assert.equal(list.type.baseType, core.NUMBER_TYPE)
+  })
+
+  it('foreach iterator variable has element type of collection', () => {
+    const prog = check('let nums as list containing number be [1,2]\ngo through each n in nums { display n }')
+    const loop = prog.statements[1]
+    assert.equal(loop.kind, 'ForEachLoop')
+    assert.equal(loop.iterator.type, core.NUMBER_TYPE)
   })
 })

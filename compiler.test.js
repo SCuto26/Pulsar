@@ -2,151 +2,71 @@ import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
 import compile from '../src/compiler.js'
 
-// A simple but non-trivial Pulsar program used across several tests
-const sampleProgram = `
-define function: double(n) {
+const sample = `
+define function: double(n as number) outputs number {
   output n * 2
 }
-let x be double(5)
+let x as number be double(5)
 display x
 `
 
 describe('The compiler', () => {
+  // Unknown output type
+  it('throws when output type is missing', () => assert.throws(() => compile(sample), /Unknown output type/))
+  it('throws on unknown output type', () => assert.throws(() => compile(sample, 'bad'), /Unknown output type/))
+  it('throws on empty string output type', () => assert.throws(() => compile(sample, ''), /Unknown output type/))
 
-  // ── Unknown output type ──────────────────────────────────────────────────
-  it('throws when the output type is missing', () => {
-    assert.throws(() => compile(sampleProgram), /Unknown output type/)
+  // parsed
+  it('parsed returns Syntax is ok', () => assert.ok(compile(sample, 'parsed').startsWith('Syntax is ok')))
+  it('parsed works for minimal program', () => assert.ok(compile('display "hi"', 'parsed').startsWith('Syntax is ok')))
+
+  // analyzed
+  it('analyzed returns a Program node', () => assert.equal(compile(sample, 'analyzed').kind, 'Program'))
+  it('analyzed result has statements', () => assert.ok(compile(sample, 'analyzed').statements.length > 0))
+  it('analyzed carries type information', () => {
+    const r = compile('let x as number be 5', 'analyzed')
+    assert.equal(r.statements[0].variable.type, 'number')
   })
 
-  it('throws when the output type is unknown', () => {
-    assert.throws(() => compile(sampleProgram, 'no such type'), /Unknown output type/)
+  // optimized
+  it('optimized returns a Program node', () => assert.equal(compile(sample, 'optimized').kind, 'Program'))
+  it('optimized folds constants', () => {
+    assert.equal(compile('let x as number be 3 + 4', 'optimized').statements[0].initializer, 7)
   })
-
-  it('throws when the output type is empty string', () => {
-    assert.throws(() => compile(sampleProgram, ''), /Unknown output type/)
-  })
-
-  // ── "parsed" output type ─────────────────────────────────────────────────
-  it('accepts the parsed option', () => {
-    const result = compile(sampleProgram, 'parsed')
-    assert.ok(result.startsWith('Syntax is ok'))
-  })
-
-  it('parsed returns a string', () => {
-    assert.equal(typeof compile(sampleProgram, 'parsed'), 'string')
-  })
-
-  it('parsed works for the simplest possible program', () => {
-    assert.ok(compile('display "hello"', 'parsed').startsWith('Syntax is ok'))
-  })
-
-  // ── "analyzed" output type ───────────────────────────────────────────────
-  it('accepts the analyzed option', () => {
-    const result = compile(sampleProgram, 'analyzed')
-    assert.equal(result.kind, 'Program')
-  })
-
-  it('analyzed returns a Program node with statements', () => {
-    const result = compile(sampleProgram, 'analyzed')
-    assert.ok(Array.isArray(result.statements))
-    assert.ok(result.statements.length > 0)
-  })
-
-  it('analyzed result contains a FunctionDeclaration', () => {
-    const result = compile(sampleProgram, 'analyzed')
-    assert.equal(result.statements[0].kind, 'FunctionDeclaration')
-  })
-
-  // ── "optimized" output type ──────────────────────────────────────────────
-  it('accepts the optimized option', () => {
-    const result = compile(sampleProgram, 'optimized')
-    assert.equal(result.kind, 'Program')
-  })
-
-  it('optimized applies constant folding', () => {
-    const result = compile('let x be 3 + 4', 'optimized')
-    assert.equal(result.statements[0].initializer, 7)
-  })
-
   it('optimized eliminates while-false', () => {
-    const result = compile('let x be 0\nas long as false { display x }', 'optimized')
-    assert.equal(result.statements.length, 1)
+    assert.equal(
+      compile('let x as number be 1\nas long as false { display x }', 'optimized').statements.length,
+      1
+    )
   })
 
-  // ── "js" output type ─────────────────────────────────────────────────────
-  it('accepts the js option', () => {
-    const result = compile(sampleProgram, 'js')
-    assert.equal(typeof result, 'string')
+  // js
+  it('js returns a string', () => assert.equal(typeof compile(sample, 'js'), 'string'))
+  it('js output contains function', () => assert.ok(compile(sample, 'js').includes('function double_')))
+  it('js output contains console.log', () => assert.ok(compile(sample, 'js').includes('console.log')))
+  it('js for display produces console.log', () => assert.equal(compile('display "hello"', 'js').trim(), 'console.log("hello");'))
+  it('js for folded expression', () => assert.equal(compile('let x as number be 3 + 4', 'js').trim(), 'let x_1 = 7;'))
+  it('js uses return for output', () => assert.ok(compile('define function: f(x as number) outputs number { output x }', 'js').includes('return')))
+  it('js uses break for stop', () => assert.ok(compile('let go as boolean be true\nas long as go { stop }', 'js').includes('break')))
+  it('js uses while for as-long-as', () => assert.ok(compile('let go as boolean be true\nas long as go { display go }', 'js').includes('while')))
+  it('js uses for-of for foreach', () => {
+    const out = compile('let nums as list containing number be [1,2]\ngo through each n in nums { display n }', 'js')
+    assert.ok(out.includes('for') && out.includes('of'))
+  })
+  it('js uses class for group', () => {
+    const out = compile('group Student: name as string, gpa as number', 'js')
+    assert.ok(out.includes('class Student_') && out.includes('constructor'))
   })
 
-  it('js output contains a function declaration', () => {
-    const result = compile(sampleProgram, 'js')
-    assert.ok(result.includes('function double_'))
-  })
-
-  it('js output contains console.log', () => {
-    const result = compile(sampleProgram, 'js')
-    assert.ok(result.includes('console.log'))
-  })
-
-  it('generates js for a simple display', () => {
-    const result = compile('display "hello world"', 'js')
-    assert.equal(result.trim(), 'console.log("hello world");')
-  })
-
-  it('generates js for a constant-folded expression', () => {
-    const result = compile('let x be 3 + 4', 'js')
-    assert.equal(result.trim(), 'let x_1 = 7;')
-  })
-
-  it('generates js with break for stop', () => {
-    const result = compile('let x be 1\nas long as x { stop }', 'js')
-    assert.ok(result.includes('break;'))
-  })
-
-  it('generates js with return for output', () => {
-    const result = compile('define function: f(x) { output x }', 'js')
-    assert.ok(result.includes('return'))
-  })
-
-  it('generates js with while for as-long-as', () => {
-    const result = compile('let x be 1\nas long as x { display x }', 'js')
-    assert.ok(result.includes('while'))
-  })
-
-  it('generates js with for-of for foreach', () => {
-    const result = compile('let items be [1, 2]\ngo through each item in items { display item }', 'js')
-    assert.ok(result.includes('for') && result.includes('of'))
-  })
-
-  it('generates js class for group declaration', () => {
-    const result = compile('group Student: name, gpa', 'js')
-    assert.ok(result.includes('class Student_'))
-    assert.ok(result.includes('constructor'))
-  })
-
-  // ── Error propagation ────────────────────────────────────────────────────
-  it('throws a syntax error for invalid source on parsed', () => {
-    assert.throws(() => compile('let let let', 'parsed'), /Line 1/)
-  })
-
-  it('throws a syntax error for invalid source on analyzed', () => {
-    assert.throws(() => compile('let let let', 'analyzed'), /Line 1/)
-  })
-
-  it('throws a semantic error for undeclared variable', () => {
-    assert.throws(() => compile('display x', 'analyzed'), /has not been declared/)
-  })
-
-  it('throws a semantic error for stop outside loop', () => {
-    assert.throws(() => compile('stop', 'analyzed'), /'stop' can only appear inside a loop/)
-  })
-
-  it('throws a semantic error for output outside function', () => {
-    assert.throws(() => compile('output 5', 'analyzed'), /'output' can only appear inside a function/)
-  })
-
-  it('throws a semantic error for redeclared variable', () => {
-    assert.throws(() => compile('let x be 5\nlet x be 10', 'analyzed'), /already declared/)
-  })
+  // Error propagation
+  it('throws syntax error on parsed', () => assert.throws(() => compile('let let as number be 5', 'parsed'), /Line 1/))
+  it('throws type mismatch on analyzed', () => assert.throws(() => compile('let x as number be "oops"', 'analyzed'), /Cannot assign/))
+  it('throws undeclared on analyzed', () => assert.throws(() => compile('display x', 'analyzed'), /has not been declared/))
+  it('throws stop outside loop', () => assert.throws(() => compile('stop', 'analyzed'), /'stop' can only appear/))
+  it('throws output outside function', () => assert.throws(() => compile('output 5', 'analyzed'), /'output' can only appear/))
+  it('throws redeclared variable', () => assert.throws(() => compile('let x as number be 5\nlet x as number be 10', 'analyzed'), /already declared/))
+  it('throws arg count mismatch', () => assert.throws(() => compile('define function: f(x as number) outputs void { display x }\nf(1,2)', 'analyzed'), /expects 1/))
+  it('throws arg type mismatch', () => assert.throws(() => compile('define function: f(x as number) outputs void { display x }\nf("bad")', 'analyzed'), /Cannot assign/))
+  it('throws call of non-function', () => assert.throws(() => compile('let x as number be 5\nx()', 'analyzed'), /is not a function/))
+  it('throws duplicate group fields', () => assert.throws(() => compile('group Bad: x as number, x as string', 'analyzed'), /duplicate fields/))
 })
