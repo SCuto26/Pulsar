@@ -1,0 +1,157 @@
+Pulsar {
+
+  // A Pulsar program is one or more statements
+  Program = Statement+
+
+  // Statements
+  Statement = FunctionDecl
+            | GroupDecl
+            | VarDecl
+            | Assignment
+            | DisplayStmt
+            | IfStmt
+            | WhileLoop
+            | ForEachLoop
+            | StopStmt
+            | OutputStmt
+            | Call                -- callStmt
+
+  // define function: add (x and y) { ... }
+  FunctionDecl = define function ":" id "(" Params ")" Block
+
+  // Parameters separated by "and": x and y and z
+  Params = ListOf<id, ",">
+
+  // group Student: name, gpa, grade
+  GroupDecl = group id ":" NonemptyListOf<id, ",">
+
+  // let x be 5
+  VarDecl = let id be Exp
+
+  // x be 10  (reassignment)
+  Assignment = id be Exp
+
+  // display "hello"
+  DisplayStmt = display Exp
+
+  // if x is greater than 5 { ... } otherwise { ... }
+  IfStmt = if Exp Block (otherwise Block)?
+
+  // as long as x is less than 10 { ... }
+  WhileLoop = asLongAs Exp Block
+
+  // go through each item in myList { ... }
+  ForEachLoop = goThrough each id in id Block
+
+  // stop
+  StopStmt = stop
+
+  // output result
+  OutputStmt = output Exp
+
+  // Block: { statements }
+  Block = "{" Statement* "}"
+
+  // Function call (used both as expression and statement)
+  Call = id "(" ListOf<Exp, ","> ")"
+
+  // ── Expressions (lowest to highest precedence) ──
+
+  Exp  = Exp or Exp1    -- or
+       | Exp1
+
+  Exp1 = Exp1 and Exp2  -- and
+       | Exp2
+
+  Exp2 = Exp3 is not Exp3   -- neq
+       | Exp3 is Exp3        -- eq
+       | Exp3
+
+  Exp3 = Exp3 isGreaterThanOrEqualTo Exp4  -- gte
+       | Exp3 isLessThanOrEqualTo Exp4     -- lte
+       | Exp3 isGreaterThan Exp4           -- gt
+       | Exp3 isLessThan Exp4             -- lt
+       | Exp4
+
+  Exp4 = Exp4 "+" Exp5  -- add
+       | Exp4 "-" Exp5  -- sub
+       | Exp5
+
+  Exp5 = Exp5 "*" Exp6  -- mul
+       | Exp5 "/" Exp6  -- div
+       | Exp5 "%" Exp6  -- mod
+       | Exp6
+
+  Exp6 = not Exp6       -- not
+       | "-" Exp6       -- neg
+       | Primary
+
+  Primary = Call                                -- call
+          | id "." id                           -- field
+          | numeral                             -- num
+          | strlit                              -- str
+          | true                               -- true
+          | false                              -- false
+          | "[" ListOf<Exp, ","> "]"           -- list
+          | "{" NonemptyListOf<MapEntry, ","> "}" -- map
+          | "(" Exp ")"                        -- parens
+          | id                                 -- id
+
+  MapEntry = strlit "->" Exp
+
+  // ── Multi-word keyword tokens (lexical) ──
+
+  // "as long as" tokenized as one lexical rule
+  asLongAs = "as" space+ "long" space+ "as" ~idchar
+
+  // "go through" tokenized as one lexical rule
+  goThrough = "go" space+ "through" ~idchar
+
+  // "is greater than or equal to"
+  isGreaterThanOrEqualTo = "is" space+ "greater" space+ "than" space+ "or" space+ "equal" space+ "to" ~idchar
+
+  // "is less than or equal to"
+  isLessThanOrEqualTo = "is" space+ "less" space+ "than" space+ "or" space+ "equal" space+ "to" ~idchar
+
+  // "is greater than"
+  isGreaterThan = "is" space+ "greater" space+ "than" ~idchar
+
+  // "is less than"
+  isLessThan = "is" space+ "less" space+ "than" ~idchar
+
+  // ── Single keyword tokens ──
+  let       = "let" ~idchar
+  be        = "be" ~idchar
+  define    = "define" ~idchar
+  function  = "function" ~idchar
+  group     = "group" ~idchar
+  display   = "display" ~idchar
+  output    = "output" ~idchar
+  stop      = "stop" ~idchar
+  if        = "if" ~idchar
+  otherwise = "otherwise" ~idchar
+  each      = "each" ~idchar
+  in        = "in" ~idchar
+  and       = "and" ~idchar
+  or        = "or" ~idchar
+  not       = "not" ~idchar
+  is        = "is" ~idchar
+  true      = "true" ~idchar
+  false     = "false" ~idchar
+
+  // ── Reserved keyword list (identifiers cannot match these) ──
+  keyword = let | be | define | function | group | display | output
+          | stop | if | otherwise | each | in | and | or | not
+          | is | true | false
+
+  // ── Identifiers ──
+  id      = ~keyword letter idchar*
+  idchar  = letter | digit | "_"
+
+  // ── Literals ──
+  numeral = digit+ ("." digit+)?
+  strlit  = "\"" (~"\"" any)* "\""
+
+  // ── Comments: // to end of line ──
+  space  += "//" (~"\n" any)* -- comment
+}
