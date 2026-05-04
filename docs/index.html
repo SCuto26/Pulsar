@@ -1,12 +1,1422 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <title>Pulsar</title>
-  </head>
-  <body>
-    <img src="docs/PulsarLogo.png" alt="Pulsar logo" />
-    <h1>Pulsar</h1>
-    <p>Coming soon.</p>
-  </body>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pulsar — The Language That Makes Pseudocode Real</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Manrope:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    /* ── Reset & Tokens ─────────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:          #080b14;
+      --bg2:         #0d1120;
+      --bg3:         #111827;
+      --surface:     rgba(255,255,255,0.04);
+      --border:      rgba(255,255,255,0.08);
+      --purple:      #9b5de5;
+      --blue:        #4cc9f0;
+      --pink:        #f72585;
+      --accent:      #c77dff;
+      --text:        #e2e8f0;
+      --muted:       #64748b;
+      --code-bg:     #0d1120;
+      --pulsar-bg:   rgba(155,93,229,0.08);
+      --swift-bg:    rgba(76,201,240,0.06);
+      --font-display: 'Syne', sans-serif;
+      --font-body:    'Manrope', sans-serif;
+      --font-mono:    'JetBrains Mono', monospace;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-body);
+      font-size: 16px;
+      line-height: 1.7;
+      overflow-x: hidden;
+    }
+
+    /* ── Star Field Canvas ──────────────────────────────────────────────── */
+    #starfield {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    /* ── Gradient Nebula ────────────────────────────────────────────────── */
+    .nebula {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      background:
+        radial-gradient(ellipse 80% 60% at 20% 10%, rgba(155,93,229,0.15) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 50% at 80% 80%, rgba(76,201,240,0.1) 0%, transparent 55%),
+        radial-gradient(ellipse 50% 40% at 50% 50%, rgba(247,37,133,0.05) 0%, transparent 50%);
+    }
+
+    /* ── Layout ─────────────────────────────────────────────────────────── */
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 2rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    section { padding: 5rem 0; }
+
+    /* ── Nav ─────────────────────────────────────────────────────────────── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      padding: 1.2rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(8,11,20,0.7);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      text-decoration: none;
+    }
+
+    .nav-logo img {
+      width: 36px;
+      height: 36px;
+      object-fit: contain;
+    }
+
+    .nav-logo span {
+      font-family: var(--font-display);
+      font-weight: 800;
+      font-size: 1.2rem;
+      color: var(--text);
+      letter-spacing: -0.02em;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 2rem;
+      list-style: none;
+    }
+
+    .nav-links a {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 0.875rem;
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+
+    .nav-links a:hover { color: var(--text); }
+
+    .nav-cta {
+      background: linear-gradient(135deg, var(--purple), var(--blue));
+      color: #fff !important;
+      padding: 0.5rem 1.2rem;
+      border-radius: 6px;
+      font-weight: 600 !important;
+    }
+
+    /* ── Hero ────────────────────────────────────────────────────────────── */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      padding-top: 5rem;
+      position: relative;
+    }
+
+    .hero-inner {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4rem;
+      align-items: center;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: rgba(155,93,229,0.15);
+      border: 1px solid rgba(155,93,229,0.3);
+      border-radius: 100px;
+      padding: 0.3rem 1rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--accent);
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      margin-bottom: 1.5rem;
+    }
+
+    .hero-badge::before {
+      content: '';
+      width: 6px; height: 6px;
+      background: var(--accent);
+      border-radius: 50%;
+      animation: pulse-dot 2s infinite;
+    }
+
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(1.5); }
+    }
+
+    .hero h1 {
+      font-family: var(--font-display);
+      font-size: clamp(2.8rem, 5vw, 4.5rem);
+      font-weight: 800;
+      line-height: 1.05;
+      letter-spacing: -0.03em;
+      margin-bottom: 1.5rem;
+    }
+
+    .hero h1 .gradient-text {
+      background: linear-gradient(135deg, var(--purple) 0%, var(--blue) 50%, var(--pink) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero-subtitle {
+      font-size: 1.1rem;
+      color: var(--muted);
+      max-width: 420px;
+      margin-bottom: 2.5rem;
+      line-height: 1.8;
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: linear-gradient(135deg, var(--purple), var(--blue));
+      color: #fff;
+      text-decoration: none;
+      padding: 0.85rem 1.8rem;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      transition: opacity 0.2s, transform 0.2s;
+    }
+
+    .btn-primary:hover { opacity: 0.9; transform: translateY(-1px); }
+
+    .btn-ghost {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: transparent;
+      color: var(--text);
+      text-decoration: none;
+      padding: 0.85rem 1.8rem;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      font-weight: 500;
+      font-size: 0.95rem;
+      transition: border-color 0.2s, background 0.2s;
+    }
+
+    .btn-ghost:hover {
+      border-color: var(--purple);
+      background: rgba(155,93,229,0.08);
+    }
+
+    /* Hero code card */
+    .hero-code-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 0 80px rgba(155,93,229,0.15), 0 40px 80px rgba(0,0,0,0.4);
+      animation: float 6s ease-in-out infinite;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-12px); }
+    }
+
+    .card-topbar {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.9rem 1.2rem;
+      background: rgba(255,255,255,0.03);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .dot { width: 10px; height: 10px; border-radius: 50%; }
+    .dot-red { background: #ff5f57; }
+    .dot-yellow { background: #febc2e; }
+    .dot-green { background: #28c840; }
+
+    .card-filename {
+      margin-left: 0.5rem;
+      font-size: 0.75rem;
+      color: var(--muted);
+      font-family: var(--font-mono);
+    }
+
+    .card-body {
+      padding: 1.5rem;
+    }
+
+    /* ── Sections Shared ─────────────────────────────────────────────────── */
+    .section-label {
+      display: inline-block;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 1rem;
+    }
+
+    .section-title {
+      font-family: var(--font-display);
+      font-size: clamp(2rem, 3.5vw, 3rem);
+      font-weight: 800;
+      line-height: 1.1;
+      letter-spacing: -0.02em;
+      margin-bottom: 1.5rem;
+    }
+
+    .section-body {
+      color: var(--muted);
+      max-width: 640px;
+      font-size: 1.05rem;
+      line-height: 1.85;
+    }
+
+    .section-body + .section-body {
+      margin-top: 1.2rem;
+    }
+
+    /* ── Story ───────────────────────────────────────────────────────────── */
+    #story {
+      border-top: 1px solid var(--border);
+    }
+
+    .story-grid {
+      display: grid;
+      grid-template-columns: 1fr 1.4fr;
+      gap: 5rem;
+      align-items: center;
+    }
+
+    .story-logo {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .story-logo img {
+      width: 100%;
+      max-width: 300px;
+      filter: drop-shadow(0 0 60px rgba(155,93,229,0.4));
+      animation: glow-pulse 4s ease-in-out infinite;
+    }
+
+    @keyframes glow-pulse {
+      0%, 100% { filter: drop-shadow(0 0 40px rgba(155,93,229,0.3)); }
+      50% { filter: drop-shadow(0 0 80px rgba(155,93,229,0.6)); }
+    }
+
+    /* ── Features Grid ───────────────────────────────────────────────────── */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5rem;
+      margin-top: 3rem;
+    }
+
+    .feature-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.8rem;
+      transition: border-color 0.3s, transform 0.3s, box-shadow 0.3s;
+    }
+
+    .feature-card:hover {
+      border-color: rgba(155,93,229,0.4);
+      transform: translateY(-4px);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.3), 0 0 30px rgba(155,93,229,0.1);
+    }
+
+    .feature-icon {
+      font-size: 1.8rem;
+      margin-bottom: 1rem;
+    }
+
+    .feature-title {
+      font-family: var(--font-display);
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+
+    .feature-desc {
+      font-size: 0.875rem;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+
+    /* ── Static Checks ───────────────────────────────────────────────────── */
+    .checks-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.75rem;
+      margin-top: 2rem;
+    }
+
+    .check-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1rem 1.2rem;
+      font-size: 0.875rem;
+      transition: border-color 0.2s;
+    }
+
+    .check-item:hover { border-color: rgba(155,93,229,0.3); }
+
+    .check-icon {
+      color: var(--accent);
+      font-size: 1rem;
+      flex-shrink: 0;
+      margin-top: 0.1rem;
+    }
+
+    .check-text strong {
+      display: block;
+      color: var(--text);
+      font-weight: 600;
+      margin-bottom: 0.2rem;
+    }
+
+    .check-text span {
+      color: var(--muted);
+      font-size: 0.8rem;
+    }
+
+    /* ── Examples ────────────────────────────────────────────────────────── */
+    #examples { border-top: 1px solid var(--border); }
+
+    .examples-header {
+      text-align: center;
+      margin-bottom: 3rem;
+    }
+
+    .tab-row {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-bottom: 2rem;
+    }
+
+    .tab-btn {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      padding: 0.55rem 1.2rem;
+      border-radius: 100px;
+      font-family: var(--font-body);
+      font-size: 0.85rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .tab-btn:hover {
+      border-color: var(--purple);
+      color: var(--text);
+    }
+
+    .tab-btn.active {
+      background: linear-gradient(135deg, var(--purple), var(--blue));
+      border-color: transparent;
+      color: #fff;
+      font-weight: 600;
+    }
+
+    .example-panel { display: none; }
+    .example-panel.active { display: block; }
+
+    .code-comparison {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      animation: fade-slide-up 0.3s ease;
+    }
+
+    @keyframes fade-slide-up {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .code-pane {
+      position: relative;
+    }
+
+    .code-pane:first-child {
+      background: var(--pulsar-bg);
+      border-right: 1px solid var(--border);
+    }
+
+    .code-pane:last-child {
+      background: var(--swift-bg);
+    }
+
+    .code-pane-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.9rem 1.4rem;
+      border-bottom: 1px solid var(--border);
+      background: rgba(255,255,255,0.02);
+    }
+
+    .lang-badge {
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 0.25rem 0.7rem;
+      border-radius: 100px;
+    }
+
+    .lang-badge.pulsar {
+      background: rgba(155,93,229,0.2);
+      color: var(--accent);
+      border: 1px solid rgba(155,93,229,0.3);
+    }
+
+    .lang-badge.swift {
+      background: rgba(76,201,240,0.15);
+      color: var(--blue);
+      border: 1px solid rgba(76,201,240,0.25);
+    }
+
+    .code-pane pre {
+      padding: 1.5rem;
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      line-height: 1.8;
+      overflow-x: auto;
+      white-space: pre;
+    }
+
+    /* Syntax highlighting */
+    .kw  { color: #c77dff; font-weight: 500; }   /* keywords */
+    .kw2 { color: #4cc9f0; font-weight: 500; }   /* swift keywords */
+    .fn  { color: #80ffdb; }                      /* function names */
+    .str { color: #f9c74f; }                      /* strings */
+    .num { color: #f8961e; }                      /* numbers */
+    .cmt { color: #4a5568; font-style: italic; }  /* comments */
+    .tp  { color: #f72585; }                      /* types */
+    .op  { color: #90e0ef; }                      /* operators */
+
+    /* ── Developer Bio ───────────────────────────────────────────────────── */
+    #developer { border-top: 1px solid var(--border); }
+
+    .bio-card {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 3rem;
+      align-items: center;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 3rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .bio-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 3px;
+      background: linear-gradient(90deg, var(--purple), var(--blue), var(--pink));
+    }
+
+    .bio-avatar {
+      width: 140px;
+      height: 140px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 3px solid transparent;
+      background: linear-gradient(var(--bg2), var(--bg2)) padding-box,
+                  linear-gradient(135deg, var(--purple), var(--blue)) border-box;
+      box-shadow: 0 0 40px rgba(155,93,229,0.3);
+      flex-shrink: 0;
+    }
+
+    .bio-name {
+      font-family: var(--font-display);
+      font-size: 1.8rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      margin-bottom: 0.3rem;
+    }
+
+    .bio-role {
+      font-size: 0.875rem;
+      color: var(--accent);
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      margin-bottom: 1.2rem;
+    }
+
+    .bio-text {
+      color: var(--muted);
+      font-size: 0.95rem;
+      line-height: 1.8;
+      max-width: 600px;
+    }
+
+    .bio-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-top: 1.2rem;
+    }
+
+    .bio-tag {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--border);
+      padding: 0.3rem 0.8rem;
+      border-radius: 100px;
+      font-size: 0.78rem;
+      color: var(--muted);
+      font-weight: 500;
+    }
+
+    /* ── Footer ─────────────────────────────────────────────────────────── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 2.5rem 0;
+      position: relative;
+      z-index: 1;
+    }
+
+    .footer-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .footer-logo {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      text-decoration: none;
+    }
+
+    .footer-logo img {
+      width: 28px;
+      height: 28px;
+      object-fit: contain;
+    }
+
+    .footer-logo span {
+      font-family: var(--font-display);
+      font-weight: 700;
+      color: var(--muted);
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 1.5rem;
+      list-style: none;
+    }
+
+    .footer-links a {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 0.85rem;
+      transition: color 0.2s;
+    }
+
+    .footer-links a:hover { color: var(--text); }
+
+    .footer-copy {
+      color: var(--muted);
+      font-size: 0.8rem;
+    }
+
+    /* ── Scroll animations ───────────────────────────────────────────────── */
+    .reveal {
+      opacity: 0;
+      transform: translateY(24px);
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .reveal-delay-1 { transition-delay: 0.1s; }
+    .reveal-delay-2 { transition-delay: 0.2s; }
+    .reveal-delay-3 { transition-delay: 0.3s; }
+
+    /* ── Responsive ──────────────────────────────────────────────────────── */
+    @media (max-width: 900px) {
+      .hero-inner { grid-template-columns: 1fr; }
+      .hero-code-card { display: none; }
+      .story-grid { grid-template-columns: 1fr; gap: 2rem; }
+      .story-logo { order: -1; }
+      .story-logo img { max-width: 200px; }
+      .features-grid { grid-template-columns: repeat(2, 1fr); }
+      .checks-grid { grid-template-columns: 1fr; }
+      .code-comparison { grid-template-columns: 1fr; }
+      .code-pane:first-child { border-right: none; border-bottom: 1px solid var(--border); }
+      .bio-card { grid-template-columns: 1fr; text-align: center; gap: 1.5rem; }
+      .bio-avatar { margin: 0 auto; }
+      .bio-tags { justify-content: center; }
+    }
+
+    @media (max-width: 600px) {
+      .features-grid { grid-template-columns: 1fr; }
+      .nav-links { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Background effects -->
+<canvas id="starfield"></canvas>
+<div class="nebula"></div>
+
+<!-- Nav -->
+<nav>
+  <a href="#" class="nav-logo">
+    <img src="PulsarLogo.png" alt="Pulsar" />
+    <span>Pulsar</span>
+  </a>
+  <ul class="nav-links">
+    <li><a href="#story">Story</a></li>
+    <li><a href="#features">Features</a></li>
+    <li><a href="#examples">Examples</a></li>
+    <li><a href="#developer">Developer</a></li>
+    <li><a href="https://github.com/SCuto26/Pulsar" target="_blank" rel="noopener" class="nav-cta">GitHub →</a></li>
+  </ul>
+</nav>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="container">
+    <div class="hero-inner">
+      <div>
+        <div class="hero-badge">Now with static typing</div>
+        <h1>
+          Pseudocode.<br/>
+          <span class="gradient-text">Made Real.</span>
+        </h1>
+        <p class="hero-subtitle">
+          Pulsar is a statically typed programming language that reads like English sentences — bridging the gap between Scratch and Swift without drowning beginners in syntax.
+        </p>
+        <div class="hero-actions">
+          <a href="https://github.com/SCuto26/Pulsar" target="_blank" rel="noopener" class="btn-primary">
+            View on GitHub
+          </a>
+          <a href="#examples" class="btn-ghost">See Examples →</a>
+        </div>
+      </div>
+
+      <div class="hero-code-card">
+        <div class="card-topbar">
+          <span class="dot dot-red"></span>
+          <span class="dot dot-yellow"></span>
+          <span class="dot dot-green"></span>
+          <span class="card-filename">hello.pulsar</span>
+        </div>
+        <div class="card-body">
+          <pre style="font-family:var(--font-mono);font-size:0.82rem;line-height:1.9;"><span class="cmt">// Variables read like declarations</span>
+<span class="kw">let</span> name <span class="kw">as</span> <span class="tp">string</span> <span class="kw">be</span> <span class="str">"Stefan"</span>
+<span class="kw">let</span> age <span class="kw">as</span> <span class="tp">number</span> <span class="kw">be</span> <span class="num">21</span>
+<span class="kw">let</span> honors <span class="kw">as</span> <span class="tp">boolean</span> <span class="kw">be</span> <span class="kw">true</span>
+
+<span class="cmt">// Functions output typed values</span>
+<span class="kw">define function</span>: greet(n <span class="kw">as</span> <span class="tp">string</span>) <span class="kw">outputs</span> <span class="tp">string</span> {
+  <span class="kw">output</span> <span class="str">"Hello, "</span> + n
+}
+
+<span class="kw">display</span> greet(name)
+<span class="kw">display</span> age
+<span class="kw">display</span> honors</pre>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Story -->
+<section id="story">
+  <div class="container">
+    <div class="story-grid">
+      <div class="story-logo reveal">
+        <img src="PulsarLogo.png" alt="Pulsar Logo" />
+      </div>
+      <div>
+        <span class="section-label reveal">The Story</span>
+        <h2 class="section-title reveal">Why pseudocode<br/>deserves to run.</h2>
+        <p class="section-body reveal reveal-delay-1">
+          There's a certain irony in the way educators handle pseudocode — they teach it as the universal language of logic, then immediately disqualify it from exams because it "isn't real code." That contradiction stuck with me. If pseudocode is expressive enough to explain algorithms to humans, why shouldn't it be expressive enough to explain them to machines? Pulsar is the direct answer to that question: a statically typed language where <code style="font-family:var(--font-mono);color:var(--accent);font-size:0.9em;">let score as number be 95</code> is valid, executable code. Not a sketch. Not a stepping stone. The real thing. The goal was always to let beginners — especially those making the jump from Scratch's building blocks to the syntax-heavy world of Swift or Python — write programs in language they already understand, without spending their first weeks memorizing colons, arrows, and bracket conventions. You immerse in the logic. The language handles the rest.
+        </p>
+        <p class="section-body reveal reveal-delay-2">
+          The name and the logo came together almost accidentally. I started with the aesthetic: a dark gradient background, stars, something that felt like space. Then I needed something in that universe that was predictable — something you could calculate, something intuitive. Pulsars fit perfectly. A pulsar is a rotating neutron star that emits regular, measurable bursts of radio waves; you can calculate exactly when the next pulse will arrive. That's the same guarantee Pulsar the language makes. You shouldn't need to read a specification document to understand how it works — after a few programs, the pattern becomes obvious, and you know what comes next. The constellation effect in the logo connects that same idea: individual stars forming a shape that, once you see it, you can't unsee. That's what I want Pulsar to feel like — not a language you study, but one you just start to recognize.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Features -->
+<section id="features">
+  <div class="container">
+    <span class="section-label reveal">Features</span>
+    <h2 class="section-title reveal">What makes Pulsar different.</h2>
+
+    <div class="features-grid">
+      <div class="feature-card reveal">
+        <div class="feature-icon">🔤</div>
+        <div class="feature-title">English-first syntax</div>
+        <p class="feature-desc">Keywords read as sentences. <code style="font-family:var(--font-mono);color:var(--accent);font-size:0.85em;">as long as</code>, <code style="font-family:var(--font-mono);color:var(--accent);font-size:0.85em;">go through each</code>, <code style="font-family:var(--font-mono);color:var(--accent);font-size:0.85em;">is greater than</code> — no symbols to memorize.</p>
+      </div>
+      <div class="feature-card reveal reveal-delay-1">
+        <div class="feature-icon">🔒</div>
+        <div class="feature-title">Static typing</div>
+        <p class="feature-desc">Every variable, parameter, and return value has a declared type. Errors are caught before the program ever runs.</p>
+      </div>
+      <div class="feature-card reveal reveal-delay-2">
+        <div class="feature-icon">⚡</div>
+        <div class="feature-title">Transpiles to JavaScript</div>
+        <p class="feature-desc">Pulsar compiles down to clean, readable JavaScript — making it easy to run anywhere Node.js runs.</p>
+      </div>
+      <div class="feature-card reveal">
+        <div class="feature-icon">📦</div>
+        <div class="feature-title">Groups &amp; collections</div>
+        <p class="feature-desc">Declare structured data with <code style="font-family:var(--font-mono);color:var(--accent);font-size:0.85em;">group</code>, typed lists with <code style="font-family:var(--font-mono);color:var(--accent);font-size:0.85em;">list containing</code>, and maps with <code style="font-family:var(--font-mono);color:var(--accent);font-size:0.85em;">map linking</code>.</p>
+      </div>
+      <div class="feature-card reveal reveal-delay-1">
+        <div class="feature-icon">🛡️</div>
+        <div class="feature-title">Smart optimizer</div>
+        <p class="feature-desc">Constant folding, dead code elimination, and algebraic simplifications run automatically before code generation.</p>
+      </div>
+      <div class="feature-card reveal reveal-delay-2">
+        <div class="feature-icon">🧪</div>
+        <div class="feature-title">100% test coverage</div>
+        <p class="feature-desc">Every pipeline phase — parser, analyzer, optimizer, generator — is fully tested with a comprehensive suite.</p>
+      </div>
+    </div>
+
+    <!-- Static checks -->
+    <div style="margin-top:4rem;">
+      <span class="section-label reveal">Static Analysis</span>
+      <h3 class="section-title reveal" style="font-size:clamp(1.5rem,2.5vw,2rem);">What Pulsar catches at compile time.</h3>
+      <div class="checks-grid">
+        <div class="check-item reveal">
+          <span class="check-icon">✦</span>
+          <div class="check-text">
+            <strong>Type mismatch on assignment</strong>
+            <span>Assigning a string to a number variable is a compile error</span>
+          </div>
+        </div>
+        <div class="check-item reveal reveal-delay-1">
+          <span class="check-icon">✦</span>
+          <div class="check-text">
+            <strong>Argument type checking</strong>
+            <span>Every call site is verified against declared parameter types</span>
+          </div>
+        </div>
+        <div class="check-item reveal">
+          <span class="check-icon">✦</span>
+          <div class="check-text">
+            <strong>Argument count matching</strong>
+            <span>Too many or too few arguments are caught before runtime</span>
+          </div>
+        </div>
+        <div class="check-item reveal reveal-delay-1">
+          <span class="check-icon">✦</span>
+          <div class="check-text">
+            <strong>Return type enforcement</strong>
+            <span>A function declared to output a number cannot return a string</span>
+          </div>
+        </div>
+        <div class="check-item reveal">
+          <span class="check-icon">✦</span>
+          <div class="check-text">
+            <strong>Scope resolution</strong>
+            <span>Undeclared and redeclared identifiers are flagged with line numbers</span>
+          </div>
+        </div>
+        <div class="check-item reveal reveal-delay-1">
+          <span class="check-icon">✦</span>
+          <div class="check-text">
+            <strong>Boolean-only conditionals</strong>
+            <span>if and as-long-as require boolean expressions — not numbers</span>
+          </div>
+        </div>
+        <div class="check-item reveal">
+          <span class="check-icon">✦</span>
+          <div class="check-text">
+            <strong>stop / output placement</strong>
+            <span>stop must be in a loop; output must be in a function</span>
+          </div>
+        </div>
+        <div class="check-item reveal reveal-delay-1">
+          <span class="check-icon">✦</span>
+          <div class="check-text">
+            <strong>Duplicate group fields</strong>
+            <span>A group cannot declare the same field name twice</span>
+          </div>
+        </div>
+        <div class="check-item reveal">
+          <span class="check-icon">✦</span>
+          <div class="check-text">
+            <strong>List homogeneity</strong>
+            <span>All elements in a list literal must have the same type</span>
+          </div>
+        </div>
+        <div class="check-item reveal reveal-delay-1">
+          <span class="check-icon">✦</span>
+          <div class="check-text">
+            <strong>No calling non-functions</strong>
+            <span>Attempting to call a variable as a function is a compile error</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Examples -->
+<section id="examples">
+  <div class="container">
+    <div class="examples-header">
+      <span class="section-label reveal">Examples</span>
+      <h2 class="section-title reveal">Pulsar vs Swift — side by side.</h2>
+      <p style="color:var(--muted);max-width:520px;margin:0 auto;font-size:0.95rem;" class="reveal">
+        Both statically typed. One reads like a sentence.
+      </p>
+    </div>
+
+    <div class="tab-row reveal">
+      <button class="tab-btn active" onclick="showExample(0)">Greeting</button>
+      <button class="tab-btn" onclick="showExample(1)">Grade Calculator</button>
+      <button class="tab-btn" onclick="showExample(2)">FizzBuzz</button>
+      <button class="tab-btn" onclick="showExample(3)">List Stats</button>
+      <button class="tab-btn" onclick="showExample(4)">Student Report</button>
+      <button class="tab-btn" onclick="showExample(5)">Operators &amp; Loops</button>
+    </div>
+
+    <!-- Example 0: Greeting -->
+    <div class="example-panel active" id="ex-0">
+      <div class="code-comparison">
+        <div class="code-pane">
+          <div class="code-pane-header">
+            <span class="lang-badge pulsar">Pulsar</span>
+          </div>
+          <pre><span class="cmt">// hello.pulsar</span>
+<span class="kw">let</span> name <span class="kw">as</span> <span class="tp">string</span> <span class="kw">be</span> <span class="str">"Stefan"</span>
+<span class="kw">let</span> age <span class="kw">as</span> <span class="tp">number</span> <span class="kw">be</span> <span class="num">21</span>
+<span class="kw">let</span> gpa <span class="kw">as</span> <span class="tp">number</span> <span class="kw">be</span> <span class="num">3.9</span>
+<span class="kw">let</span> isHonors <span class="kw">as</span> <span class="tp">boolean</span> <span class="kw">be</span>
+  gpa <span class="kw">is greater than or equal to</span> <span class="num">3.5</span>
+<span class="kw">let</span> isAdult <span class="kw">as</span> <span class="tp">boolean</span> <span class="kw">be</span>
+  age <span class="kw">is greater than or equal to</span> <span class="num">18</span>
+
+<span class="kw">display</span> <span class="str">"Welcome to Pulsar!"</span>
+<span class="kw">display</span> name
+<span class="kw">display</span> age
+<span class="kw">display</span> isHonors
+<span class="kw">display</span> isAdult</pre>
+        </div>
+        <div class="code-pane">
+          <div class="code-pane-header">
+            <span class="lang-badge swift">Swift</span>
+          </div>
+          <pre><span class="cmt">// hello.swift</span>
+<span class="kw2">let</span> name: String = <span class="str">"Stefan"</span>
+<span class="kw2">let</span> age: Int = <span class="num">21</span>
+<span class="kw2">let</span> gpa: Double = <span class="num">3.9</span>
+<span class="kw2">let</span> isHonors: Bool = gpa >= <span class="num">3.5</span>
+
+
+
+<span class="kw2">let</span> isAdult: Bool = age >= <span class="num">18</span>
+
+
+
+<span class="fn">print</span>(<span class="str">"Welcome to Pulsar!"</span>)
+<span class="fn">print</span>(name)
+<span class="fn">print</span>(age)
+<span class="fn">print</span>(isHonors)
+<span class="fn">print</span>(isAdult)</pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- Example 1: Grade Calculator -->
+    <div class="example-panel" id="ex-1">
+      <div class="code-comparison">
+        <div class="code-pane">
+          <div class="code-pane-header">
+            <span class="lang-badge pulsar">Pulsar</span>
+          </div>
+          <pre><span class="cmt">// grade_calculator.pulsar</span>
+<span class="kw">define function</span>: <span class="fn">letterGrade</span>(score <span class="kw">as</span> <span class="tp">number</span>) <span class="kw">outputs</span> <span class="tp">string</span> {
+  <span class="kw">if</span> score <span class="kw">is greater than or equal to</span> <span class="num">90</span> {
+    <span class="kw">output</span> <span class="str">"A"</span>
+  } <span class="kw">otherwise</span> {
+    <span class="kw">if</span> score <span class="kw">is greater than or equal to</span> <span class="num">80</span> {
+      <span class="kw">output</span> <span class="str">"B"</span>
+    } <span class="kw">otherwise</span> {
+      <span class="kw">if</span> score <span class="kw">is greater than or equal to</span> <span class="num">70</span> {
+        <span class="kw">output</span> <span class="str">"C"</span>
+      } <span class="kw">otherwise</span> { <span class="kw">output</span> <span class="str">"F"</span> }
+    }
+  }
+}
+
+<span class="kw">define function</span>: <span class="fn">applyBonus</span>(score <span class="kw">as</span> <span class="tp">number</span>, bonus <span class="kw">as</span> <span class="tp">number</span>) <span class="kw">outputs</span> <span class="tp">number</span> {
+  <span class="kw">output</span> score + bonus
+}
+
+<span class="kw">let</span> score <span class="kw">as</span> <span class="tp">number</span> <span class="kw">be</span> <span class="num">83</span>
+<span class="kw">let</span> adjusted <span class="kw">as</span> <span class="tp">number</span> <span class="kw">be</span> <span class="fn">applyBonus</span>(score, <span class="num">4</span>)
+<span class="kw">let</span> grade <span class="kw">as</span> <span class="tp">string</span> <span class="kw">be</span> <span class="fn">letterGrade</span>(adjusted)
+<span class="kw">display</span> grade</pre>
+        </div>
+        <div class="code-pane">
+          <div class="code-pane-header">
+            <span class="lang-badge swift">Swift</span>
+          </div>
+          <pre><span class="cmt">// grade_calculator.swift</span>
+<span class="kw2">func</span> <span class="fn">letterGrade</span>(score: Double) -> String {
+  <span class="kw2">if</span> score >= <span class="num">90</span> {
+    <span class="kw2">return</span> <span class="str">"A"</span>
+  } <span class="kw2">else if</span> score >= <span class="num">80</span> {
+    <span class="kw2">return</span> <span class="str">"B"</span>
+  } <span class="kw2">else if</span> score >= <span class="num">70</span> {
+    <span class="kw2">return</span> <span class="str">"C"</span>
+  } <span class="kw2">else</span> { <span class="kw2">return</span> <span class="str">"F"</span> }
+}
+
+<span class="kw2">func</span> <span class="fn">applyBonus</span>(score: Double, bonus: Double) -> Double {
+  <span class="kw2">return</span> score + bonus
+}
+
+<span class="kw2">let</span> score: Double = <span class="num">83</span>
+<span class="kw2">let</span> adjusted: Double = <span class="fn">applyBonus</span>(score: score, bonus: <span class="num">4</span>)
+<span class="kw2">let</span> grade: String = <span class="fn">letterGrade</span>(score: adjusted)
+<span class="fn">print</span>(grade)</pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- Example 2: FizzBuzz -->
+    <div class="example-panel" id="ex-2">
+      <div class="code-comparison">
+        <div class="code-pane">
+          <div class="code-pane-header">
+            <span class="lang-badge pulsar">Pulsar</span>
+          </div>
+          <pre><span class="cmt">// fizzbuzz.pulsar</span>
+<span class="kw">define function</span>: <span class="fn">divisible</span>(n <span class="kw">as</span> <span class="tp">number</span>, d <span class="kw">as</span> <span class="tp">number</span>) <span class="kw">outputs</span> <span class="tp">boolean</span> {
+  <span class="kw">output</span> n % d <span class="kw">is</span> <span class="num">0</span>
+}
+
+<span class="kw">define function</span>: <span class="fn">label</span>(n <span class="kw">as</span> <span class="tp">number</span>) <span class="kw">outputs</span> <span class="tp">string</span> {
+  <span class="kw">if</span> <span class="fn">divisible</span>(n, <span class="num">3</span>) <span class="kw">and</span> <span class="fn">divisible</span>(n, <span class="num">5</span>) {
+    <span class="kw">output</span> <span class="str">"FizzBuzz"</span>
+  } <span class="kw">otherwise</span> {
+    <span class="kw">if</span> <span class="fn">divisible</span>(n, <span class="num">3</span>) {
+      <span class="kw">output</span> <span class="str">"Fizz"</span>
+    } <span class="kw">otherwise</span> {
+      <span class="kw">if</span> <span class="fn">divisible</span>(n, <span class="num">5</span>) {
+        <span class="kw">output</span> <span class="str">"Buzz"</span>
+      } <span class="kw">otherwise</span> { <span class="kw">output</span> <span class="str">"number"</span> }
+    }
+  }
+}
+
+<span class="kw">display</span> <span class="fn">label</span>(<span class="num">1</span>)
+<span class="kw">display</span> <span class="fn">label</span>(<span class="num">3</span>)
+<span class="kw">display</span> <span class="fn">label</span>(<span class="num">5</span>)
+<span class="kw">display</span> <span class="fn">label</span>(<span class="num">15</span>)</pre>
+        </div>
+        <div class="code-pane">
+          <div class="code-pane-header">
+            <span class="lang-badge swift">Swift</span>
+          </div>
+          <pre><span class="cmt">// fizzbuzz.swift</span>
+<span class="kw2">func</span> <span class="fn">divisible</span>(n: Int, d: Int) -> Bool {
+  <span class="kw2">return</span> n % d == <span class="num">0</span>
+}
+
+<span class="kw2">func</span> <span class="fn">label</span>(n: Int) -> String {
+  <span class="kw2">if</span> <span class="fn">divisible</span>(n: n, d: <span class="num">3</span>) && <span class="fn">divisible</span>(n: n, d: <span class="num">5</span>) {
+    <span class="kw2">return</span> <span class="str">"FizzBuzz"</span>
+  } <span class="kw2">else if</span> <span class="fn">divisible</span>(n: n, d: <span class="num">3</span>) {
+    <span class="kw2">return</span> <span class="str">"Fizz"</span>
+  } <span class="kw2">else if</span> <span class="fn">divisible</span>(n: n, d: <span class="num">5</span>) {
+    <span class="kw2">return</span> <span class="str">"Buzz"</span>
+  } <span class="kw2">else</span> { <span class="kw2">return</span> <span class="str">"number"</span> }
+}
+
+<span class="fn">print</span>(<span class="fn">label</span>(n: <span class="num">1</span>))
+<span class="fn">print</span>(<span class="fn">label</span>(n: <span class="num">3</span>))
+<span class="fn">print</span>(<span class="fn">label</span>(n: <span class="num">5</span>))
+<span class="fn">print</span>(<span class="fn">label</span>(n: <span class="num">15</span>))</pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- Example 3: List Stats -->
+    <div class="example-panel" id="ex-3">
+      <div class="code-comparison">
+        <div class="code-pane">
+          <div class="code-pane-header">
+            <span class="lang-badge pulsar">Pulsar</span>
+          </div>
+          <pre><span class="cmt">// list_stats.pulsar</span>
+<span class="kw">define function</span>: <span class="fn">sum</span>(scores <span class="kw">as</span> <span class="tp">list containing number</span>) <span class="kw">outputs</span> <span class="tp">number</span> {
+  <span class="kw">let</span> total <span class="kw">as</span> <span class="tp">number</span> <span class="kw">be</span> <span class="num">0</span>
+  <span class="kw">go through each</span> score <span class="kw">in</span> scores {
+    total <span class="kw">be</span> total + score
+  }
+  <span class="kw">output</span> total
+}
+
+<span class="kw">define function</span>: <span class="fn">max</span>(scores <span class="kw">as</span> <span class="tp">list containing number</span>) <span class="kw">outputs</span> <span class="tp">number</span> {
+  <span class="kw">let</span> highest <span class="kw">as</span> <span class="tp">number</span> <span class="kw">be</span> <span class="num">0</span>
+  <span class="kw">go through each</span> score <span class="kw">in</span> scores {
+    <span class="kw">if</span> score <span class="kw">is greater than</span> highest {
+      highest <span class="kw">be</span> score
+    }
+  }
+  <span class="kw">output</span> highest
+}
+
+<span class="kw">let</span> scores <span class="kw">as</span> <span class="tp">list containing number</span> <span class="kw">be</span> [<span class="num">72</span>, <span class="num">95</span>, <span class="num">88</span>, <span class="num">61</span>, <span class="num">100</span>]
+<span class="kw">display</span> <span class="fn">sum</span>(scores)
+<span class="kw">display</span> <span class="fn">max</span>(scores)</pre>
+        </div>
+        <div class="code-pane">
+          <div class="code-pane-header">
+            <span class="lang-badge swift">Swift</span>
+          </div>
+          <pre><span class="cmt">// list_stats.swift</span>
+<span class="kw2">func</span> <span class="fn">sum</span>(scores: [Double]) -> Double {
+  <span class="kw2">var</span> total: Double = <span class="num">0</span>
+  <span class="kw2">for</span> score <span class="kw2">in</span> scores {
+    total += score
+  }
+  <span class="kw2">return</span> total
+}
+
+<span class="kw2">func</span> <span class="fn">max</span>(scores: [Double]) -> Double {
+  <span class="kw2">var</span> highest: Double = <span class="num">0</span>
+  <span class="kw2">for</span> score <span class="kw2">in</span> scores {
+    <span class="kw2">if</span> score > highest {
+      highest = score
+    }
+  }
+  <span class="kw2">return</span> highest
+}
+
+<span class="kw2">let</span> scores: [Double] = [<span class="num">72</span>, <span class="num">95</span>, <span class="num">88</span>, <span class="num">61</span>, <span class="num">100</span>]
+<span class="fn">print</span>(<span class="fn">sum</span>(scores: scores))
+<span class="fn">print</span>(<span class="fn">max</span>(scores: scores))</pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- Example 4: Student Report -->
+    <div class="example-panel" id="ex-4">
+      <div class="code-comparison">
+        <div class="code-pane">
+          <div class="code-pane-header">
+            <span class="lang-badge pulsar">Pulsar</span>
+          </div>
+          <pre><span class="cmt">// student_report.pulsar</span>
+<span class="kw">group</span> Student: name <span class="kw">as</span> <span class="tp">string</span>, gpa <span class="kw">as</span> <span class="tp">number</span>, year <span class="kw">as</span> <span class="tp">number</span>
+
+<span class="kw">define function</span>: <span class="fn">standing</span>(year <span class="kw">as</span> <span class="tp">number</span>) <span class="kw">outputs</span> <span class="tp">string</span> {
+  <span class="kw">if</span> year <span class="kw">is</span> <span class="num">1</span> { <span class="kw">output</span> <span class="str">"Freshman"</span> }
+  <span class="kw">otherwise</span> {
+    <span class="kw">if</span> year <span class="kw">is</span> <span class="num">2</span> { <span class="kw">output</span> <span class="str">"Sophomore"</span> }
+    <span class="kw">otherwise</span> {
+      <span class="kw">if</span> year <span class="kw">is</span> <span class="num">3</span> { <span class="kw">output</span> <span class="str">"Junior"</span> }
+      <span class="kw">otherwise</span> { <span class="kw">output</span> <span class="str">"Senior"</span> }
+    }
+  }
+}
+
+<span class="kw">define function</span>: <span class="fn">isHonors</span>(gpa <span class="kw">as</span> <span class="tp">number</span>) <span class="kw">outputs</span> <span class="tp">boolean</span> {
+  <span class="kw">output</span> gpa <span class="kw">is greater than or equal to</span> <span class="num">3.5</span>
+}
+
+<span class="kw">define function</span>: <span class="fn">report</span>(name <span class="kw">as</span> <span class="tp">string</span>, gpa <span class="kw">as</span> <span class="tp">number</span>, year <span class="kw">as</span> <span class="tp">number</span>) <span class="kw">outputs</span> <span class="tp">void</span> {
+  <span class="kw">display</span> name
+  <span class="kw">display</span> <span class="fn">standing</span>(year)
+  <span class="kw">display</span> <span class="fn">isHonors</span>(gpa)
+}</pre>
+        </div>
+        <div class="code-pane">
+          <div class="code-pane-header">
+            <span class="lang-badge swift">Swift</span>
+          </div>
+          <pre><span class="cmt">// student_report.swift</span>
+<span class="kw2">struct</span> Student {
+  <span class="kw2">var</span> name: String
+  <span class="kw2">var</span> gpa: Double
+  <span class="kw2">var</span> year: Int
+}
+
+<span class="kw2">func</span> <span class="fn">standing</span>(year: Int) -> String {
+  <span class="kw2">if</span> year == <span class="num">1</span> { <span class="kw2">return</span> <span class="str">"Freshman"</span> }
+  <span class="kw2">else if</span> year == <span class="num">2</span> { <span class="kw2">return</span> <span class="str">"Sophomore"</span> }
+  <span class="kw2">else if</span> year == <span class="num">3</span> { <span class="kw2">return</span> <span class="str">"Junior"</span> }
+  <span class="kw2">else</span> { <span class="kw2">return</span> <span class="str">"Senior"</span> }
+}
+
+<span class="kw2">func</span> <span class="fn">isHonors</span>(gpa: Double) -> Bool {
+  <span class="kw2">return</span> gpa >= <span class="num">3.5</span>
+}
+
+<span class="kw2">func</span> <span class="fn">report</span>(name: String, gpa: Double, year: Int) {
+  <span class="fn">print</span>(name)
+  <span class="fn">print</span>(<span class="fn">standing</span>(year: year))
+  <span class="fn">print</span>(<span class="fn">isHonors</span>(gpa: gpa))
+}</pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- Example 5: Operators & Loops -->
+    <div class="example-panel" id="ex-5">
+      <div class="code-comparison">
+        <div class="code-pane">
+          <div class="code-pane-header">
+            <span class="lang-badge pulsar">Pulsar</span>
+          </div>
+          <pre><span class="cmt">// operators_and_loops.pulsar</span>
+<span class="kw">define function</span>: <span class="fn">countdown</span>(start <span class="kw">as</span> <span class="tp">number</span>) <span class="kw">outputs</span> <span class="tp">void</span> {
+  <span class="kw">let</span> current <span class="kw">as</span> <span class="tp">number</span> <span class="kw">be</span> start
+  <span class="kw">let</span> done <span class="kw">as</span> <span class="tp">boolean</span> <span class="kw">be</span> <span class="kw">false</span>
+  <span class="kw">as long as</span> <span class="kw">not</span> done {
+    <span class="kw">display</span> current
+    current <span class="kw">be</span> current - <span class="num">1</span>
+    <span class="kw">if</span> current <span class="kw">is less than or equal to</span> <span class="num">0</span> {
+      done <span class="kw">be</span> <span class="kw">true</span>
+      <span class="kw">stop</span>
+    }
+  }
+}
+
+<span class="kw">define function</span>: <span class="fn">inRange</span>(x <span class="kw">as</span> <span class="tp">number</span>, low <span class="kw">as</span> <span class="tp">number</span>, high <span class="kw">as</span> <span class="tp">number</span>) <span class="kw">outputs</span> <span class="tp">boolean</span> {
+  <span class="kw">output</span> x <span class="kw">is greater than or equal to</span> low <span class="kw">and</span> x <span class="kw">is less than or equal to</span> high
+}
+
+<span class="kw">let</span> x <span class="kw">as</span> <span class="tp">number</span> <span class="kw">be</span> <span class="num">10</span>
+<span class="kw">let</span> y <span class="kw">as</span> <span class="tp">number</span> <span class="kw">be</span> <span class="num">3</span>
+<span class="kw">let</span> diff <span class="kw">as</span> <span class="tp">number</span> <span class="kw">be</span> x - y
+<span class="kw">let</span> product <span class="kw">as</span> <span class="tp">number</span> <span class="kw">be</span> x * y
+<span class="kw">let</span> check <span class="kw">as</span> <span class="tp">boolean</span> <span class="kw">be</span> x <span class="kw">is not</span> y
+<span class="kw">display</span> <span class="fn">inRange</span>(x, <span class="num">1</span>, <span class="num">10</span>)
+<span class="fn">countdown</span>(<span class="num">3</span>)</pre>
+        </div>
+        <div class="code-pane">
+          <div class="code-pane-header">
+            <span class="lang-badge swift">Swift</span>
+          </div>
+          <pre><span class="cmt">// operators_and_loops.swift</span>
+<span class="kw2">func</span> <span class="fn">countdown</span>(start: Int) {
+  <span class="kw2">var</span> current: Int = start
+  <span class="kw2">var</span> done: Bool = <span class="kw2">false</span>
+  <span class="kw2">while</span> !done {
+    <span class="fn">print</span>(current)
+    current -= <span class="num">1</span>
+    <span class="kw2">if</span> current <= <span class="num">0</span> {
+      done = <span class="kw2">true</span>
+      <span class="kw2">break</span>
+    }
+  }
+}
+
+<span class="kw2">func</span> <span class="fn">inRange</span>(x: Int, low: Int, high: Int) -> Bool {
+  <span class="kw2">return</span> x >= low && x <= high
+}
+
+<span class="kw2">let</span> x: Int = <span class="num">10</span>
+<span class="kw2">let</span> y: Int = <span class="num">3</span>
+<span class="kw2">let</span> diff: Int = x - y
+<span class="kw2">let</span> product: Int = x * y
+<span class="kw2">let</span> check: Bool = x != y
+<span class="fn">print</span>(<span class="fn">inRange</span>(x: x, low: <span class="num">1</span>, high: <span class="num">10</span>))
+<span class="fn">countdown</span>(start: <span class="num">3</span>)</pre>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Developer -->
+<section id="developer">
+  <div class="container">
+    <span class="section-label reveal">Developer</span>
+    <h2 class="section-title reveal">Built by.</h2>
+    <div class="bio-card reveal">
+      <img src="DeveloperPic.jpg" alt="Stefan Cutovic" class="bio-avatar" />
+      <div>
+        <div class="bio-name">Stefan Cutovic</div>
+        <div class="bio-role">Language Designer &amp; Compiler Author</div>
+        <p class="bio-text">
+          Senior Computer Science student at Loyola Marymount University, graduating December 2025.
+          Stefan built Pulsar for CMSI 3802 (Languages and Automata II) as a full compiler pipeline —
+          Ohm grammar, static analyzer, optimizer, and JavaScript code generator — with the goal of
+          proving that pseudocode is more than a classroom sketch. When not writing compilers, he
+          works as an IT Systems Analyst at LMU's ITS department, competes in USTA tennis leagues,
+          and instructs at a country club. Pulsar is his answer to every professor who ever said
+          pseudocode wouldn't run.
+        </p>
+        <div class="bio-tags">
+          <span class="bio-tag">Loyola Marymount University</span>
+          <span class="bio-tag">Swift &amp; iOS</span>
+          <span class="bio-tag">Compiler Design</span>
+          <span class="bio-tag">USTA Tennis</span>
+          <span class="bio-tag">Dual Citizen 🇷🇸</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer>
+  <div class="container">
+    <div class="footer-inner">
+      <a href="#" class="footer-logo">
+        <img src="PulsarLogo.png" alt="Pulsar" />
+        <span>Pulsar</span>
+      </a>
+      <ul class="footer-links">
+        <li><a href="https://github.com/SCuto26/Pulsar" target="_blank" rel="noopener">GitHub</a></li>
+        <li><a href="#story">Story</a></li>
+        <li><a href="#examples">Examples</a></li>
+        <li><a href="#developer">Developer</a></li>
+      </ul>
+      <span class="footer-copy">© 2025 Stefan Cutovic · LMU CMSI 3802</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // ── Star field ──────────────────────────────────────────────────────────────
+  (function () {
+    const canvas = document.getElementById('starfield')
+    const ctx = canvas.getContext('2d')
+    let stars = []
+
+    function resize() {
+      canvas.width = window.innerWidth
+      canvas.height = window.innerHeight
+    }
+
+    function initStars() {
+      stars = []
+      const count = Math.floor((window.innerWidth * window.innerHeight) / 6000)
+      for (let i = 0; i < count; i++) {
+        stars.push({
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height,
+          r: Math.random() * 1.4 + 0.2,
+          opacity: Math.random() * 0.7 + 0.1,
+          speed: Math.random() * 0.3 + 0.05,
+          twinkleSpeed: Math.random() * 0.02 + 0.005,
+          twinkleOffset: Math.random() * Math.PI * 2,
+        })
+      }
+    }
+
+    let frame = 0
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height)
+      frame++
+      for (const s of stars) {
+        const twinkle = Math.sin(frame * s.twinkleSpeed + s.twinkleOffset) * 0.3 + 0.7
+        ctx.beginPath()
+        ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2)
+        ctx.fillStyle = `rgba(255,255,255,${s.opacity * twinkle})`
+        ctx.fill()
+      }
+      requestAnimationFrame(draw)
+    }
+
+    resize()
+    initStars()
+    draw()
+    window.addEventListener('resize', () => { resize(); initStars() })
+  })()
+
+  // ── Tab switching ───────────────────────────────────────────────────────────
+  function showExample(index) {
+    document.querySelectorAll('.example-panel').forEach((p, i) => {
+      p.classList.toggle('active', i === index)
+    })
+    document.querySelectorAll('.tab-btn').forEach((b, i) => {
+      b.classList.toggle('active', i === index)
+    })
+  }
+
+  // ── Scroll reveal ────────────────────────────────────────────────────────────
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.classList.add('visible')
+        observer.unobserve(e.target)
+      }
+    })
+  }, { threshold: 0.1 })
+
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el))
+</script>
+</body>
 </html>
