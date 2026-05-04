@@ -207,6 +207,7 @@
       filter: drop-shadow(0 0 60px rgba(155,93,229,0.45));
       animation: logo-float 7s ease-in-out infinite;
       mix-blend-mode: lighten;
+      clip-path: inset(5% 5% 5% 5%);
     }
 
     @keyframes logo-float {
@@ -265,7 +266,7 @@
     }
 
     .story-image {
-      width: 280px;
+      width: 420px;
       flex-shrink: 0;
       border-radius: 16px;
       overflow: hidden;
@@ -282,7 +283,7 @@
 
     @media (max-width: 900px) {
       .story-layout { grid-template-columns: 1fr; }
-      .story-image { width: 100%; max-width: 340px; margin: 0 auto; position: static; }
+      .story-image { width: 100%; max-width: 440px; margin: 0 auto; position: static; }
     }
 
     /* English-first feature — single prominent callout */
@@ -454,13 +455,15 @@
     #developer { border-top: 1px solid var(--border); }
 
     .bio-card {
-      display: grid;
-      grid-template-columns: auto 1fr;
-      gap: 3rem; align-items: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 1.2rem;
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: 18px;
-      padding: 2.8rem;
+      padding: 3rem 2rem;
       position: relative; overflow: hidden;
     }
 
@@ -484,7 +487,7 @@
     .bio-name {
       font-family: var(--font-display);
       font-size: 1.7rem; font-weight: 400;
-      margin-bottom: 0.25rem;
+      margin-bottom: 0;
     }
 
     .bio-role {
@@ -493,7 +496,7 @@
       text-transform: uppercase; margin-bottom: 1.1rem;
     }
 
-    .bio-text { color: var(--muted); font-size: 0.93rem; line-height: 1.85; max-width: 580px; }
+    .bio-text { color: var(--muted); font-size: 0.85rem; line-height: 1.9; text-align: center; }
 
     .bio-tags { display: flex; flex-wrap: wrap; gap: 0.45rem; margin-top: 1.1rem; }
 
@@ -545,8 +548,7 @@
       .checks-grid { grid-template-columns: 1fr; }
       .code-comparison { grid-template-columns: 1fr; }
       .code-pane:first-child { border-right: none; border-bottom: 1px solid var(--border); }
-      .bio-card { grid-template-columns: 1fr; text-align: center; gap: 1.5rem; }
-      .bio-avatar { margin: 0 auto; }
+      .bio-card { padding: 2rem 1.2rem; }
       .bio-tags { justify-content: center; }
     }
 
@@ -610,7 +612,7 @@
           There's an irony that stuck with me throughout every CS course I took: educators use pseudocode to teach the fundamentals of logic and computation, then immediately disqualify it from exams because it "isn't real code." That contradiction was the starting point for Pulsar. If pseudocode is expressive enough to explain an algorithm to a human, it should be expressive enough to explain it to a machine. Pulsar is that — a fully compiled, statically typed language built on the premise that readable code and rigorous code are not opposites. It isn't a stepping stone to other languages. It's an alternative entry point into the world of real programming, one that doesn't ask you to learn a new notation before you can start thinking in logic.
         </div>
         <div class="story-para section-body reveal reveal-delay-2">
-          The name came from thinking about what makes a language trustworthy. A pulsar is a rotating neutron star that emits radio waves on a precise, calculable interval — you don't need to observe it constantly to know when the next pulse arrives. That predictability is what I wanted Pulsar the language to have. You shouldn't need to consult the spec every time you write a line. After a few programs the pattern becomes obvious, and you know what comes next. The logo came naturally from that — pulsars are stars, and a set of them felt like the right visual for something built around that kind of steady, readable rhythm.
+          The name came from thinking about what makes a language trustworthy. A pulsar is a rotating neutron star that emits radio waves on a precise, calculable interval — you don't need to observe it constantly to know when the next pulse arrives. That predictability is what I wanted Pulsar the language to have. You shouldn't need to consult the spec every time you write a line. After a few programs the pattern becomes obvious, and you know what comes next.
         </div>
       </div>
       <div class="story-image reveal">
@@ -1068,12 +1070,13 @@
     <span class="section-label reveal">Developer</span>
     <div class="bio-card reveal">
       <img src="DeveloperPic.jpg" alt="Stefan Cutovic" class="bio-avatar" />
-      <div>
-        <div class="bio-name">Stefan Cutovic</div>
-        <p class="bio-text">
-          Computer Science student at Loyola Marymount University.
-        </p>
-      </div>
+      <div class="bio-name">Stefan Cutovic</div>
+      <p class="bio-text">
+        CS Student @ LMU<br/>
+        Retired Tennis Athlete<br/>
+        Survivor Enthusiast<br/>
+        Overwatch Grandmaster
+      </p>
     </div>
   </div>
 </section>
