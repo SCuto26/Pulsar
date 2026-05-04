@@ -114,6 +114,9 @@ const semanticErrors = [
   // ForEach on non-list
   ['foreach on number',                 'let x as number be 5\ngo through each n in x { display n }', /Expected a list/],
   ['foreach on string',                 'let s as string be "hi"\ngo through each c in s { display c }', /Expected a list/],
+  ['mixed map value types',               'let m as map linking string to number be {"a" -> 1, "b" -> "oops"}', /All map values must have the same type/],
+  ['assign wrong map value type',         'let m as map linking string to number be {"a" -> "hello"}', /Cannot assign/],
+  ['assign map to list variable',         'let m as list containing number be {"a" -> 1}', /Cannot assign/],
 
   // Scope errors
   ['undeclared variable',               'display x',                                 /has not been declared/],
@@ -195,6 +198,15 @@ describe('The analyzer', () => {
     assert.equal(list.kind, 'ListExpression')
     assert.equal(list.type.kind, 'ListType')
     assert.equal(list.type.baseType, core.NUMBER_TYPE)
+  })
+
+  it('map expression carries map type with correct key and value types', () => {
+    const prog = check('let m as map linking string to number be {"score" -> 99}')
+    const mapExp = prog.statements[0].initializer
+    assert.equal(mapExp.kind, 'MapExpression')
+    assert.equal(mapExp.type.kind, 'MapType')
+    assert.equal(mapExp.type.keyType, core.STRING_TYPE)
+    assert.equal(mapExp.type.valueType, core.NUMBER_TYPE)
   })
 
   it('foreach iterator variable has element type of collection', () => {

@@ -204,6 +204,16 @@ const fixtures = [
     expected: 'let scores_1 = [1, 2, 3];',
   },
   {
+    name: 'map literal',
+    source: 'let m as map linking string to number be {"score" -> 99, "bonus" -> 5}',
+    expected: 'let m_1 = { "score": 99, "bonus": 5 };',
+  },
+  {
+    name: 'map linking string to string',
+    source: 'let labels as map linking string to string be {"a" -> "alpha", "b" -> "beta"}',
+    expected: 'let labels_1 = { "a": "alpha", "b": "beta" };',
+  },
+  {
     name: 'while-false eliminated by optimizer',
     source: 'let x as number be 1\nas long as false { display x }',
     expected: 'let x_1 = 1;',

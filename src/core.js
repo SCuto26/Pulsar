@@ -4,9 +4,9 @@
 // Follows the Carlos architecture from CMSI 3802 course notes.
 
 // ── Type constants ────────────────────────────────────────────────────────────
-// Primitive types are plain strings; list types are objects so they carry
-// their base type. void is the return type for functions that display but
-// do not output a value.
+// Primitive types are plain strings; compound types (list, map) are objects
+// so they can carry their inner types. void is the return type for functions
+// that display but do not output a value.
 
 export const NUMBER_TYPE  = 'number'
 export const STRING_TYPE  = 'string'
@@ -14,8 +14,14 @@ export const BOOLEAN_TYPE = 'boolean'
 export const VOID_TYPE    = 'void'
 export const ANY_TYPE     = 'any' // used internally for unresolved/error recovery
 
+// list containing number  →  { kind: 'ListType', baseType: 'number' }
 export function listType(baseType) {
   return { kind: 'ListType', baseType }
+}
+
+// map linking string to number  →  { kind: 'MapType', keyType: 'string', valueType: 'number' }
+export function mapType(keyType, valueType) {
+  return { kind: 'MapType', keyType, valueType }
 }
 
 // Returns true when two types are structurally equal.
@@ -23,6 +29,9 @@ export function typesMatch(t1, t2) {
   if (t1 === t2) return true
   if (t1?.kind === 'ListType' && t2?.kind === 'ListType') {
     return typesMatch(t1.baseType, t2.baseType)
+  }
+  if (t1?.kind === 'MapType' && t2?.kind === 'MapType') {
+    return typesMatch(t1.keyType, t2.keyType) && typesMatch(t1.valueType, t2.valueType)
   }
   return false
 }
@@ -35,6 +44,7 @@ export function typeDescription(t) {
   if (t === VOID_TYPE)    return 'void'
   if (t === ANY_TYPE)     return 'any'
   if (t?.kind === 'ListType') return `list containing ${typeDescription(t.baseType)}`
+  if (t?.kind === 'MapType')  return `map linking ${typeDescription(t.keyType)} to ${typeDescription(t.valueType)}`
   return String(t)
 }
 
@@ -137,8 +147,8 @@ export function listExpression(elements, type) {
 }
 
 // { "name" -> "Stefan", "gpa" -> 3.9 }
-export function mapExpression(entries) {
-  return { kind: 'MapExpression', entries }
+export function mapExpression(entries, type) {
+  return { kind: 'MapExpression', entries, type }
 }
 
 // A single key -> value pair inside a map literal

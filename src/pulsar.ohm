@@ -58,11 +58,12 @@ Pulsar {
   Call = id "(" ListOf<Exp, ","> ")"
 
   // ── Types ──────────────────────────────────────────────────────────────────
-  Type = list containing Type   -- list
-       | number                 -- number
-       | string                 -- string
-       | boolean                -- boolean
-       | void                   -- void
+  Type = list containing Type      -- list
+       | map linking Type to Type  -- map
+       | number                    -- number
+       | string                    -- string
+       | boolean                   -- boolean
+       | void                      -- void
 
   // ── Expressions (lowest to highest precedence) ──
 
@@ -120,6 +121,9 @@ Pulsar {
   // "list containing" as a type prefix
   listContaining = "list" space+ "containing" ~idchar
 
+  // "map linking ... to ..." as a type
+  mapLinking = "map" space+ "linking" ~idchar
+
   // ── Single keyword tokens ──
   let        = "let"        ~idchar
   be         = "be"         ~idchar
@@ -144,6 +148,9 @@ Pulsar {
   void       = "void"       ~idchar
   list       = "list"       ~idchar
   containing = "containing" ~idchar
+  map        = "map"        ~idchar
+  linking    = "linking"    ~idchar
+  to         = "to"         ~idchar
   number     = "number"     ~idchar
   string     = "string"     ~idchar
   boolean    = "boolean"    ~idchar
@@ -151,7 +158,8 @@ Pulsar {
   // ── Reserved keyword list ──
   keyword = let | be | as | outputs | define | function | group | display
           | output | stop | if | otherwise | each | in | and | or | not
-          | is | true | false | void | list | containing | number | string | boolean
+          | is | true | false | void | list | containing | map | linking | to
+          | number | string | boolean
 
   // ── Identifiers ──
   id      = ~keyword letter idchar*

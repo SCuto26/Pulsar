@@ -160,6 +160,14 @@ Object.assign(must, {
     )
   },
 
+  beAMap(exp, at) {
+    must(
+      exp.type?.kind === 'MapType',
+      `Expected a map but got ${core.typeDescription(exp.type)}`,
+      at
+    )
+  },
+
   fieldExists(group, fieldName, at) {
     const field = group.fields.find(f => f.name === fieldName)
     must(field != null, `Group '${group.name}' has no field '${fieldName}'`, at)
@@ -206,6 +214,10 @@ export default function analyze(match) {
 
     Type_list(_list, _containing, baseType) {
       return core.listType(baseType.rep())
+    },
+
+    Type_map(_map, _linking, keyType, _to, valueType) {
+      return core.mapType(keyType.rep(), valueType.rep())
     },
 
     // ── Declarations ─────────────────────────────────────────────────────────
@@ -585,7 +597,19 @@ export default function analyze(match) {
 
     Primary_map(_open, entries, _close) {
       const entryNodes = entries.asIteration().children.map(e => e.rep())
-      return core.mapExpression(entryNodes)
+      if (entryNodes.length === 0) {
+        return core.mapExpression(entryNodes, core.mapType(core.STRING_TYPE, core.ANY_TYPE))
+      }
+      // All values must have the same type; keys are always strings (string literals)
+      const valueType = entryNodes[0].value.type
+      for (let i = 1; i < entryNodes.length; i++) {
+        must(
+          core.typesMatch(entryNodes[i].value.type, valueType),
+          `All map values must have the same type`,
+          { at: entries }
+        )
+      }
+      return core.mapExpression(entryNodes, core.mapType(core.STRING_TYPE, valueType))
     },
 
     Primary_parens(_open, exp, _close) {

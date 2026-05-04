@@ -126,4 +126,8 @@ describe('The optimizer', () => {
     const r = optimized('group Point: x as number, y as number')
     assert.equal(r.statements[0].kind, 'GroupDeclaration')
   })
+  it('passes through a map expression unchanged', () => {
+    const r = optimized('let m as map linking string to number be {"x" -> 1}')
+    assert.equal(r.statements[0].initializer.kind, 'MapExpression')
+  })
 })

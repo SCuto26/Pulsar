@@ -13,6 +13,12 @@ const syntaxChecks = [
   ['list containing string variable',       'let names as list containing string be ["a", "b"]'],
   ['list containing boolean variable',      'let flags as list containing boolean be [true, false]'],
   ['nested list type',              'let matrix as list containing list containing number be []'],
+  ['map linking string to number',      'let scores as map linking string to number be {"math" -> 95}'],
+  ['map linking string to string',      'let labels as map linking string to string be {"a" -> "alpha"}'],
+  ['map linking string to boolean',     'let flags as map linking string to boolean be {"active" -> true}'],
+  ['map as function param type',     'define function: f(m as map linking string to number) outputs void { display m }'],
+  ['map as function return type',    'define function: f() outputs map linking string to number { output {"x" -> 1} }'],
+  ['nested map in list',             'let x as list containing map linking string to number be [{"a" -> 1}]'],
 
   // Reassignment (no type annotation needed)
   ['reassignment',                  'let x as number be 5\nx be 10'],
@@ -98,6 +104,8 @@ const syntaxErrors = [
   ['missing block brace',           'let go as boolean be true\nif go display "hi"', /Line 2/],
   ['unclosed string',               'let x as string be "hello',      /Line 1/],
   ['number used as type name',      'let x as 5 be 5',                /Line 1/],
+  ['map missing linking keyword',       'let x as map string to number be {}', /Line 1/],
+  ['map missing to keyword',         'let x as map linking string number be {}', /Line 1/],
 ]
 
 describe('The parser', () => {
