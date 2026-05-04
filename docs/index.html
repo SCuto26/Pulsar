@@ -206,6 +206,7 @@
       width: 100%; max-width: 340px;
       filter: drop-shadow(0 0 60px rgba(155,93,229,0.45));
       animation: logo-float 7s ease-in-out infinite;
+      mix-blend-mode: lighten;
     }
 
     @keyframes logo-float {
@@ -241,6 +242,48 @@
 
     /* Story */
     #story { border-top: 1px solid var(--border); }
+
+    /* Story paragraphs */
+    .story-para {
+      background: rgba(155,93,229,0.06);
+      border: 1px solid rgba(155,93,229,0.12);
+      border-radius: 14px;
+      padding: 1.8rem 2rem;
+      margin-bottom: 1rem;
+    }
+
+    .story-para:last-of-type {
+      background: rgba(76,201,240,0.05);
+      border-color: rgba(76,201,240,0.1);
+    }
+
+    .story-layout {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 3.5rem;
+      align-items: start;
+    }
+
+    .story-image {
+      width: 280px;
+      flex-shrink: 0;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+      position: sticky;
+      top: 100px;
+    }
+
+    .story-image img {
+      width: 100%;
+      display: block;
+    }
+
+    @media (max-width: 900px) {
+      .story-layout { grid-template-columns: 1fr; }
+      .story-image { width: 100%; max-width: 340px; margin: 0 auto; position: static; }
+    }
 
     /* English-first feature — single prominent callout */
     #feature { border-top: 1px solid var(--border); }
@@ -431,6 +474,7 @@
     .bio-avatar {
       width: 130px; height: 130px;
       border-radius: 50%; object-fit: cover;
+      object-position: center 20%;
       border: 2px solid transparent;
       background: linear-gradient(var(--bg2), var(--bg2)) padding-box,
                   linear-gradient(135deg, var(--purple), var(--blue)) border-box;
@@ -560,12 +604,19 @@
   <div class="container">
     <span class="section-label reveal">The Story</span>
     <h2 class="section-title reveal">Why pseudocode<br/>deserves to run.</h2>
-    <p class="section-body reveal reveal-delay-1">
-      There's an irony that stuck with me throughout every CS course I took: educators use pseudocode to teach the fundamentals of logic and computation, then immediately disqualify it from exams because it "isn't real code." That contradiction was the starting point for Pulsar. If pseudocode is expressive enough to explain an algorithm to a human, it should be expressive enough to explain it to a machine. Pulsar is that idea executed — a fully compiled, statically typed language where <code style="font-family:var(--font-mono);color:var(--accent);font-size:0.88em;">let score as number be 95</code> is valid, runnable code. It bridges the gap between the drag-and-drop world of Scratch and the syntax-heavy demands of Swift or Python, giving beginners a language they can immerse in without spending their first weeks memorizing symbols and conventions.
-    </p>
-    <p class="section-body reveal reveal-delay-2">
-      The name came from thinking about what makes a language trustworthy. A pulsar is a rotating neutron star that emits radio waves on a precise, calculable interval — you don't need to observe it constantly to know when the next pulse arrives. That predictability is what I wanted Pulsar the language to have. You shouldn't need to consult the spec every time you write a line. After a few programs the pattern becomes obvious, and you know what comes next. The logo reinforced that — a dark gradient field, stars, and a constellation effect that connects individual points into something recognizable. Once you see the shape, you can't unsee it. That's the goal: a language you learn by reading it, not by studying it.
-    </p>
+    <div class="story-layout">
+      <div>
+        <div class="story-para section-body reveal reveal-delay-1">
+          There's an irony that stuck with me throughout every CS course I took: educators use pseudocode to teach the fundamentals of logic and computation, then immediately disqualify it from exams because it "isn't real code." That contradiction was the starting point for Pulsar. If pseudocode is expressive enough to explain an algorithm to a human, it should be expressive enough to explain it to a machine. Pulsar is that — a fully compiled, statically typed language built on the premise that readable code and rigorous code are not opposites. It isn't a stepping stone to other languages. It's an alternative entry point into the world of real programming, one that doesn't ask you to learn a new notation before you can start thinking in logic.
+        </div>
+        <div class="story-para section-body reveal reveal-delay-2">
+          The name came from thinking about what makes a language trustworthy. A pulsar is a rotating neutron star that emits radio waves on a precise, calculable interval — you don't need to observe it constantly to know when the next pulse arrives. That predictability is what I wanted Pulsar the language to have. You shouldn't need to consult the spec every time you write a line. After a few programs the pattern becomes obvious, and you know what comes next. The logo came naturally from that — pulsars are stars, and a set of them felt like the right visual for something built around that kind of steady, readable rhythm.
+        </div>
+      </div>
+      <div class="story-image reveal">
+        <img src="Entryway.png" alt="Pulsar as an entryway to programming languages" />
+      </div>
+    </div>
   </div>
 </section>
 
@@ -1015,27 +1066,13 @@
 <section id="developer">
   <div class="container">
     <span class="section-label reveal">Developer</span>
-    <h2 class="section-title reveal">Built by.</h2>
     <div class="bio-card reveal">
       <img src="DeveloperPic.jpg" alt="Stefan Cutovic" class="bio-avatar" />
       <div>
         <div class="bio-name">Stefan Cutovic</div>
-        <div class="bio-role">Language Designer &amp; Compiler Author</div>
         <p class="bio-text">
-          Senior Computer Science student at Loyola Marymount University graduating December 2025.
-          Stefan built Pulsar for CMSI 3802 (Languages and Automata II) as a full compiler pipeline —
-          Ohm grammar, static analyzer with type checking, optimizer, and JavaScript code generator.
-          Outside of compilers he works as an IT Systems Analyst at LMU's ITS department, competes
-          in USTA tennis leagues, and instructs at a country club. Pulsar is his answer to every
-          professor who ever said pseudocode wouldn't run.
+          Computer Science student at Loyola Marymount University.
         </p>
-        <div class="bio-tags">
-          <span class="bio-tag">Loyola Marymount University</span>
-          <span class="bio-tag">Swift &amp; iOS</span>
-          <span class="bio-tag">Compiler Design</span>
-          <span class="bio-tag">USTA Tennis</span>
-          <span class="bio-tag">Dual Citizen 🇷🇸</span>
-        </div>
       </div>
     </div>
   </div>
