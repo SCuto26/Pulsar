@@ -1,7 +1,7 @@
 // ── Pulsar ───────────────────────────────────────────────────────────────────
 // optimizer.test.js
 // Stefan Cutovic
-// Test suite for the Pulsar optimizer: verifies constant folding, simplifications, and dead code elimination.
+// Test suite for the Pulsar optimizer — verifies constant folding, simplifications, and dead code elimination.
 
 import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
@@ -37,6 +37,26 @@ describe('The optimizer', () => {
 
 
   // ── Boolean short-circuits ───────────────────────────────────────────────────
+  it('folds true and x to x (L===true branch)', () => {
+    const r = optimized('let x as boolean be true\nlet y as boolean be true and x')
+    assert.equal(r.statements[1].initializer.kind, 'Variable')
+  })
+  it('folds x and false to false (R===false branch)', () => {
+    const r = optimized('let x as boolean be true\nlet y as boolean be x and false')
+    assert.equal(unbox(r.statements[1].initializer), false)
+  })
+  it('folds x or false to x (R===false or branch)', () => {
+    const r = optimized('let x as boolean be true\nlet y as boolean be x or false')
+    assert.equal(r.statements[1].initializer.kind, 'Variable')
+  })
+  it('folds false or true to true (L===false or branch)', () => {
+    const r = optimized('let x as boolean be true\nlet y as boolean be false or true')
+    assert.equal(unbox(r.statements[1].initializer), true)
+  })
+  it('folds x or true to true (R===true or branch)', () => {
+    const r = optimized('let x as boolean be true\nlet y as boolean be x or true')
+    assert.equal(unbox(r.statements[1].initializer), true)
+  })
   it('folds false and x to false', () => {
     const r = optimized('let x as boolean be true\nlet y as boolean be false and x')
     assert.equal(unbox(r.statements[1].initializer), false)
@@ -82,7 +102,7 @@ describe('The optimizer', () => {
   })
 
 
-  // ── Dead code removal ────────────────────────────────────────────────────
+  // ── Dead code elimination ────────────────────────────────────────────────────
   it('eliminates while-false entirely', () => {
     assert.equal(stmtCount('let x as number be 1\nas long as false { display x }'), 1)
   })
@@ -136,8 +156,50 @@ describe('The optimizer', () => {
     const r = optimized('group Point: x as number, y as number')
     assert.equal(r.statements[0].kind, 'GroupDeclaration')
   })
+  it('folds x is less than y (< branch)', () => {
+    assert.equal(firstInit('let x as boolean be 3 is less than 5'), true)
+  })
+  it('folds x is less than or equal to y (<= branch)', () => {
+    assert.equal(firstInit('let x as boolean be 3 is less than or equal to 3'), true)
+  })
+  it('folds x is greater than or equal to y (>= branch)', () => {
+    assert.equal(firstInit('let x as boolean be 5 is greater than or equal to 3'), true)
+  })
+  it('simplifies 0 - x to negation (isZero L minus branch)', () => {
+    const r = optimized('let x as number be 5\nlet y as number be 0 - x')
+    assert.equal(r.statements[1].initializer.kind, 'UnaryExpression')
+  })
+  it('simplifies 0 / x to 0 (isZero L div branch)', () => {
+    const r = optimized('let x as number be 5\nlet y as number be 0 / x')
+    assert.equal(r.statements[1].initializer, 0)
+  })
   it('passes through a map expression unchanged', () => {
     const r = optimized('let m as map linking string to number be {"x" -> 1}')
     assert.equal(r.statements[0].initializer.kind, 'MapExpression')
   })
+  it('folds string equality to true', () => {
+    const r = optimized('let b as boolean be "abc" is "abc"')
+    assert.equal(unbox(r.statements[0].initializer), true)
+  })
+  it('folds string inequality to true', () => {
+    const r = optimized('let b as boolean be "abc" is not "def"')
+    assert.equal(unbox(r.statements[0].initializer), true)
+  })
+  it('folds string concatenation', () => {
+    const r = optimized('let s as string be "hello" + "world"')
+    assert.equal(typeof unbox(r.statements[0].initializer), 'string')
+  })
+  it('passes through field access nodes', () => {
+    const r = optimized('group Point: x as number\nlet n as number be Point.x')
+    assert.equal(r.statements[1].initializer.kind, 'FieldAccess')
+  })
+  it('eliminates foreach loop with inline empty list collection', () => {
+    const mockForEach = {
+      kind: 'ForEachLoop',
+      collection: { kind: 'ListExpression', elements: [] },
+      body: [],
+    }
+    assert.deepEqual(optimize(mockForEach), [])
+  })
+
 })

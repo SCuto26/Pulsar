@@ -1,12 +1,12 @@
 // ── Pulsar ───────────────────────────────────────────────────────────────────
 // analyzer.test.js
 // Stefan Cutovic
-// Test suite for the Pulsar analyzer: verifies static type checking, scope rules, and AST shape.
+// Test suite for the Pulsar analyzer — verifies static type checking, scope rules, and AST shape.
 
 import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
 import parse from '../src/parser.js'
-import analyze from '../src/analyzer.js'
+import analyze, { must } from '../src/analyzer.js'
 import * as core from '../src/core.js'
 
 const check = src => analyze(parse(src))
@@ -74,6 +74,14 @@ const semanticChecks = [
   ['outer var in if body',              'let x as number be 5\nlet flag as boolean be true\nif flag { display x }'],
   ['outer var in while body',           'let x as number be 5\nlet go as boolean be true\nas long as go { display x }'],
   ['stop in if inside loop',            'let go as boolean be true\nas long as go { if go { stop } }'],
+
+  // Field access, empty list, parentheses
+  ['group field access',                  'group Point: x as number\nlet n as number be Point.x'],
+  ['field access fallback on variable',   'let x as number be 5\ndisplay x.toString'],
+  ['empty list literal via display',      'display []'],
+  ['parenthesized non-constant expr',     'let x as number be 5\nlet y as number be (x + 1)'],
+  ['gte non-constant operands',           'let x as number be 5\nlet y as number be 3\nlet z as boolean be x is greater than or equal to y'],
+  ['lte non-constant operands',           'let x as number be 5\nlet y as number be 3\nlet z as boolean be x is less than or equal to y'],
 ]
 
 const semanticErrors = [
@@ -122,6 +130,7 @@ const semanticErrors = [
   ['mixed map value types',               'let m as map linking string to number be {"a" -> 1, "b" -> "oops"}', /All map values must have the same type/],
   ['assign wrong map value type',         'let m as map linking string to number be {"a" -> "hello"}', /Cannot assign/],
   ['assign map to list variable',         'let m as list containing number be {"a" -> 1}', /Cannot assign/],
+  ['field not found on group',            'group Point: x as number\ndisplay Point.y', /has no field/],
 
   // Scope errors
   ['undeclared variable',               'display x',                                 /has not been declared/],
@@ -212,6 +221,22 @@ describe('The analyzer', () => {
     assert.equal(mapExp.type.kind, 'MapType')
     assert.equal(mapExp.type.keyType, core.STRING_TYPE)
     assert.equal(mapExp.type.valueType, core.NUMBER_TYPE)
+  })
+
+  it('must uses empty prefix when errorLocation has no source', () => {
+    assert.throws(() => must(false, 'test error'), /test error/)
+  })
+
+  it('core typeDescription returns void for VOID_TYPE', () => {
+    assert.equal(core.typeDescription(core.VOID_TYPE), 'void')
+  })
+
+  it('core typeDescription returns any for ANY_TYPE', () => {
+    assert.equal(core.typeDescription(core.ANY_TYPE), 'any')
+  })
+
+  it('core typeDescription falls back to String for unknown type', () => {
+    assert.equal(core.typeDescription({}), '[object Object]')
   })
 
   it('foreach iterator variable has element type of collection', () => {

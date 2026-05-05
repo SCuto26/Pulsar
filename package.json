@@ -1,14 +1,14 @@
 {
   "name": "pulsar",
   "version": "1.0.0",
-  "description": "A statically-typed, pseudocode-inspired programming language that transpiles to JavaScript. Designed for students and learners who want code that reads like a sentence.",
+  "description": "A statically typed, pseudocode-inspired programming language that transpiles to JavaScript. Designed for students and learners who want code that reads like a sentence.",
   "type": "module",
   "main": "src/pulsar.js",
   "bin": {
     "pulsar": "src/pulsar.js"
   },
   "scripts": {
-    "test": "node --test test/*.test.js"
+    "test": "c8 node --test test/*.test.js"
   },
   "repository": {
     "type": "git",
@@ -19,10 +19,10 @@
     "compiler",
     "transpiler",
     "pseudocode",
+    "statically-typed",
     "javascript",
     "educational",
-    "ohm",
-    "statically-typed"
+    "ohm"
   ],
   "author": "Stefan Cutovic",
   "license": "MIT",
@@ -30,6 +30,11 @@
     "ohm-js": "^17.1.0"
   },
   "devDependencies": {
+    "c8": "^10.1.3",
     "prettier": "^3.8.3"
+  },
+  "c8": {
+    "include": ["src/**/*.js"],
+    "exclude": ["src/pulsar.js"]
   }
 }

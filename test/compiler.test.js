@@ -1,7 +1,7 @@
 // ── Pulsar ───────────────────────────────────────────────────────────────────
 // compiler.test.js
 // Stefan Cutovic
-// End-to-end test suite for the Pulsar compiler pipeline: verifies all four output types and error propagation.
+// End-to-end test suite for the Pulsar compiler pipeline — verifies all four output types and error propagation.
 
 import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'

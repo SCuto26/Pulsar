@@ -1,7 +1,7 @@
 // ── Pulsar ───────────────────────────────────────────────────────────────────
 // generator.test.js
 // Stefan Cutovic
-// Test suite for the Pulsar code generator: verifies correct JavaScript output for every language construct.
+// Test suite for the Pulsar code generator — verifies correct JavaScript output for every language construct.
 
 import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
@@ -237,6 +237,91 @@ const fixtures = [
     expected: dedent`
       let x_1 = 5;
       console.log(x_1);
+    `,
+  },
+  {
+    name: 'field access dot notation',
+    source: 'group Point: x as number\nlet n as number be Point.x',
+    expected: dedent`
+      class Point_1 {
+      constructor(x) {
+      this.x = x;
+      }
+      }
+      class Point_1 {
+      constructor(x) {
+      this.x = x;
+      }
+      }
+      let n_2 = [object Object].x;
+    `,
+  },
+  {
+    name: 'call as statement inside function body',
+    source: 'define function: log() outputs void { display "x" }\ndefine function: f() outputs void { log() }\nf()',
+    expected: dedent`
+      function log_1() {
+      console.log("x");
+      }
+      function f_2() {
+      log_1();
+      }
+      f_2();
+    `,
+  },
+  {
+    name: 'call as statement inside if and otherwise bodies',
+    source: 'define function: log() outputs void { display "x" }\nlet flag as boolean be true\nif flag { log() } otherwise { log() }',
+    expected: dedent`
+      function log_1() {
+      console.log("x");
+      }
+      let flag_2 = true;
+      if (flag_2) {
+      log_1();
+      } else {
+      log_1();
+      }
+    `,
+  },
+  {
+    name: 'call as statement inside short if body',
+    source: 'define function: log() outputs void { display "x" }\nlet flag as boolean be true\nif flag { log() }',
+    expected: dedent`
+      function log_1() {
+      console.log("x");
+      }
+      let flag_2 = true;
+      if (flag_2) {
+      log_1();
+      }
+    `,
+  },
+  {
+    name: 'call as statement inside while body',
+    source: 'define function: log() outputs void { display "x" }\nlet go as boolean be true\nas long as go { log()\ngo be false }',
+    expected: dedent`
+      function log_1() {
+      console.log("x");
+      }
+      let go_2 = true;
+      while (go_2) {
+      log_1();
+      go_2 = false;
+      }
+    `,
+  },
+  {
+    name: 'call as statement inside foreach body',
+    source: 'define function: log() outputs void { display "x" }\nlet items as list containing number be [1]\ngo through each n in items { log() }',
+    expected: dedent`
+      function log_1() {
+      console.log("x");
+      }
+      let items_2 = [1];
+      for (let n_3 of items_2) {
+      log_1();
+      }
     `,
   },
   {

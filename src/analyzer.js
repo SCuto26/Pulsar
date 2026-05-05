@@ -52,10 +52,10 @@ class Context {
 
 // ── Error gate ────────────────────────────────────────────────────────────────
 
-function must(condition, message, errorLocation) {
+export function must(condition, message, errorLocation) {
   if (!condition) {
-    const prefix = errorLocation?.at?.source?.getLineAndColumnMessage?.() ?? ''
-    throw new Error(`${prefix}${message}`)
+    const prefix = errorLocation?.at?.source?.getLineAndColumnMessage?.()
+    throw new Error(`${prefix ?? ''}${message}`)
   }
 }
 
@@ -84,14 +84,6 @@ Object.assign(must, {
     must(context.inFunction, `'output' can only appear inside a function`, at)
   },
 
-  haveType(exp, expected, at) {
-    must(
-      core.typesMatch(exp.type, expected),
-      `Expected ${core.typeDescription(expected)} but got ${core.typeDescription(exp.type)}`,
-      at
-    )
-  },
-
   beNumeric(exp, at) {
     must(
       exp.type === core.NUMBER_TYPE,
@@ -104,14 +96,6 @@ Object.assign(must, {
     must(
       exp.type === core.BOOLEAN_TYPE,
       `Expected boolean but got ${core.typeDescription(exp.type)}`,
-      at
-    )
-  },
-
-  beString(exp, at) {
-    must(
-      exp.type === core.STRING_TYPE,
-      `Expected string but got ${core.typeDescription(exp.type)}`,
       at
     )
   },
@@ -150,14 +134,6 @@ Object.assign(must, {
     must(
       exp.type?.kind === 'ListType',
       `Expected a list but got ${core.typeDescription(exp.type)}`,
-      at
-    )
-  },
-
-  beAMap(exp, at) {
-    must(
-      exp.type?.kind === 'MapType',
-      `Expected a map but got ${core.typeDescription(exp.type)}`,
       at
     )
   },
@@ -537,14 +513,7 @@ export default function analyze(match) {
       const entity = context.lookup(name)
       must.haveBeenDeclared(entity, name, { at: objectId })
 
-      // If the variable's type is a group, validate field at compile time
-      const groupDecl = context.lookup(entity.type?.name ?? entity.type)
-      if (groupDecl?.kind === 'GroupDeclaration') {
-        const field = must.fieldExists(groupDecl, fieldId.sourceString, { at: fieldId })
-        return core.fieldAccess(entity, fieldId.sourceString, field.type)
-      }
-
-      // For variables whose type is a GroupDeclaration directly
+      // Validate field name when accessing directly on a group declaration
       if (entity?.kind === 'GroupDeclaration') {
         const field = must.fieldExists(entity, fieldId.sourceString, { at: fieldId })
         return core.fieldAccess(entity, fieldId.sourceString, field.type)
@@ -591,9 +560,6 @@ export default function analyze(match) {
 
     Primary_map(_open, entries, _close) {
       const entryNodes = entries.asIteration().children.map(e => e.rep())
-      if (entryNodes.length === 0) {
-        return core.mapExpression(entryNodes, core.mapType(core.STRING_TYPE, core.ANY_TYPE))
-      }
       // All values must have the same type; keys are always strings (string literals)
       const valueType = entryNodes[0].value.type
       for (let i = 1; i < entryNodes.length; i++) {
@@ -621,14 +587,7 @@ export default function analyze(match) {
       return core.mapEntry(key.sourceString, value.rep())
     },
 
-    _terminal() {
-      return this.sourceString
-    },
-
-    _iter(...children) {
-      return children.map(c => c.rep())
-    },
-  })
+    })
 
   return builder(match).rep()
 }
