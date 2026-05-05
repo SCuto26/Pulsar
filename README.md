@@ -13,6 +13,8 @@
 <p align="center"><sub>Stefan Cutovic &nbsp;·&nbsp; CMSI 3802</sub></p>
 
 
+<br/>
+
 ---
 
 <br/>
@@ -71,6 +73,90 @@ Pulsar enforces a full set of static constraints at compile time — before a si
 - **Duplicate group fields** — a group cannot declare the same field name twice
 - **List homogeneity** — all elements in a list literal must share the same type
 - **No calling non-functions** — attempting to call a variable as a function is a compile error
+
+
+<br/>
+
+---
+
+<br/>
+
+
+## Generated Output
+
+Pulsar compiles to clean, readable JavaScript. Here's what the compiler produces.
+
+<div align="center">
+<table>
+<tr>
+<th>Pulsar</th>
+<th>Generated JavaScript</th>
+</tr>
+<tr>
+<td>
+
+```pulsar
+define function: double(n as number) outputs number {
+  output n * 2
+}
+let x as number be double(5)
+display x
+```
+
+</td>
+<td>
+
+```javascript
+function double_1(n_2) {
+  return (n_2 * 2);
+}
+let x_3 = double_1(5);
+console.log(x_3);
+```
+
+</td>
+</tr>
+</table>
+</div>
+
+<br/>
+
+<div align="center">
+<table>
+<tr>
+<th>Pulsar</th>
+<th>Generated JavaScript</th>
+</tr>
+<tr>
+<td>
+
+```pulsar
+let scores as list containing number be [72, 95, 88, 61, 100, 77]
+let total as number be 0
+
+go through each score in scores {
+  total be total + score
+}
+
+display total
+```
+
+</td>
+<td>
+
+```javascript
+let scores_1 = [72, 95, 88, 61, 100, 77];
+let total_2 = 0;
+for (let score_3 of scores_1) {
+  total_2 = (total_2 + score_3);
+}
+console.log(total_2);
+```
+
+</td>
+</tr>
+</table>
+</div>
 
 
 <br/>
