@@ -1,3 +1,8 @@
+// ── Pulsar ───────────────────────────────────────────────────────────────────
+// optimizer.test.js
+// Stefan Cutovic
+// Test suite for the Pulsar optimizer: verifies constant folding, simplifications, and dead code elimination.
+
 import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
 import parse from '../src/parser.js'
@@ -16,7 +21,7 @@ function unbox(v) {
 }
 
 describe('The optimizer', () => {
-  // Constant folding
+  // ── Constant folding ─────────────────────────────────────────────────────────
   it('folds 3 + 4 to 7', () => assert.equal(firstInit('let x as number be 3 + 4'), 7))
   it('folds 10 - 3 to 7', () => assert.equal(firstInit('let x as number be 10 - 3'), 7))
   it('folds 3 * 4 to 12', () => assert.equal(firstInit('let x as number be 3 * 4'), 12))
@@ -30,7 +35,8 @@ describe('The optimizer', () => {
   it('folds 3 is not 4 to true', () => assert.equal(firstInit('let x as boolean be 3 is not 4'), true))
   it('folds 5 is greater than 3 to true', () => assert.equal(firstInit('let x as boolean be 5 is greater than 3'), true))
 
-  // Boolean short-circuits
+
+  // ── Boolean short-circuits ───────────────────────────────────────────────────
   it('folds false and x to false', () => {
     const r = optimized('let x as boolean be true\nlet y as boolean be false and x')
     assert.equal(unbox(r.statements[1].initializer), false)
@@ -48,7 +54,8 @@ describe('The optimizer', () => {
     assert.equal(r.statements[1].initializer.kind, 'Variable')
   })
 
-  // Algebraic simplifications
+
+  // ── Algebraic simplifications ────────────────────────────────────────────────
   it('simplifies x + 0 to x', () => {
     assert.equal(optimized('let x as number be 5\nlet y as number be x + 0').statements[1].initializer.kind, 'Variable')
   })
@@ -74,7 +81,8 @@ describe('The optimizer', () => {
     assert.equal(optimized('let x as number be 5\nlet y as number be 0 * x').statements[1].initializer, 0)
   })
 
-  // Dead code elimination
+
+  // ── Dead code removal ────────────────────────────────────────────────────
   it('eliminates while-false entirely', () => {
     assert.equal(stmtCount('let x as number be 1\nas long as false { display x }'), 1)
   })
@@ -103,13 +111,15 @@ describe('The optimizer', () => {
     assert.equal(r.statements[1].kind, 'DisplayStatement')
   })
 
-  // Optimization inside function bodies
+
+  // ── Optimization inside nested structures ────────────────────────────────────
   it('folds constants inside function body', () => {
     const r = optimized('define function: f() outputs number { output 2 + 3 }')
     assert.equal(r.statements[0].body[0].expression, 5)
   })
 
-  // Pass-through
+
+  // ── Pass-through: non-optimizable constructs ─────────────────────────────────
   it('passes through non-constant binary expression', () => {
     const r = optimized('let x as number be 5\nlet y as number be x + 1')
     assert.equal(r.statements[1].initializer.kind, 'BinaryExpression')

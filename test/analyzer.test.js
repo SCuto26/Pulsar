@@ -1,3 +1,8 @@
+// ── Pulsar ───────────────────────────────────────────────────────────────────
+// analyzer.test.js
+// Stefan Cutovic
+// Test suite for the Pulsar analyzer: verifies static type checking, scope rules, and AST shape.
+
 import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
 import parse from '../src/parser.js'

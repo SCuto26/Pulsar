@@ -1,3 +1,8 @@
+// ── Pulsar ───────────────────────────────────────────────────────────────────
+// parser.test.js
+// Stefan Cutovic
+// Test suite for the Pulsar parser: verifies valid syntax is accepted and invalid syntax is rejected.
+
 import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
 import parse from '../src/parser.js'

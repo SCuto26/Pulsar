@@ -1,7 +1,8 @@
+// ── Pulsar ───────────────────────────────────────────────────────────────────
 // optimizer.js
-// Transforms the analyzed AST to improve the program before code generation.
-// Constant folding, algebraic simplifications, and dead code elimination.
-// Type information on expression nodes is preserved through all transformations.
+// Stefan Cutovic
+// Transforms the analyzed AST before code generation: constant folding, algebraic simplifications, 
+// and dead code removal.
 
 import * as core from './core.js'
 
@@ -9,9 +10,8 @@ export default function optimize(node) {
   return optimizers?.[node?.kind]?.(node) ?? node
 }
 
-// ── Unboxing helper ───────────────────────────────────────────────────────────
-// The analyzer wraps literals as boxed objects (Object(5), Object(true)) so
-// they can carry a .type property. Unbox before comparisons.
+// Literals are wrapped as boxed objects during analysis so they can carry a .type property.
+// Unbox to primitives before any comparison or arithmetic.
 function unbox(v) {
   if (v instanceof Number)  return v.valueOf()
   if (v instanceof Boolean) return v.valueOf()
@@ -46,6 +46,7 @@ const optimizers = {
   Assignment(s) {
     s.source = optimize(s.source)
     s.target = optimize(s.target)
+    // x be x is a no-op — remove it
     if (s.source?.kind === 'Variable' && s.target?.kind === 'Variable') {
       if (s.source.name === s.target.name) return []
     }
@@ -144,7 +145,7 @@ const optimizers = {
       if (op === '!=') return L !== R
     }
 
-    // Algebraic simplifications (left constant)
+    // Algebraic simplifications
     if (typeof L === 'number') {
       if (isZero(L) && op === '+') return e.right
       if (isZero(L) && op === '-') return core.unary('-', e.right, core.NUMBER_TYPE)
@@ -153,7 +154,6 @@ const optimizers = {
       if (isZero(L) && op === '/') return 0
     }
 
-    // Algebraic simplifications (right constant)
     if (typeof R === 'number') {
       if (isZero(R) && op === '+') return e.left
       if (isZero(R) && op === '-') return e.left

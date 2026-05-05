@@ -1,12 +1,15 @@
+// ── Pulsar ───────────────────────────────────────────────────────────────────
 // generator.js
-// Walks the optimized AST and emits JavaScript source code.
+// Stefan Cutovic
+// Walks the optimized AST and produces equivalent JavaScript source code.
 
 import * as core from './core.js'
 
 export default function generate(program) {
   const output = []
 
-  // Maps each AST entity to a unique JS name suffix to avoid reserved word collisions
+  // Each Pulsar entity gets a unique numeric suffix to avoid JS reserved word collisions.
+  // e.g. a variable named 'class' becomes 'class_1' in the output.
   const targetName = (mapping => {
     return entity => {
       if (!mapping.has(entity)) mapping.set(entity, mapping.size + 1)
@@ -21,16 +24,15 @@ export default function generate(program) {
     Program(p) {
       for (const s of p.statements) {
         const result = gen(s)
+        // Expressions used as statements (e.g. a call) return a string — push as a line.
         if (typeof result === 'string') output.push(`${result};`)
       }
     },
 
-    // let x as number be 5  →  let x_1 = 5;
     VariableDeclaration(d) {
       output.push(`let ${gen(d.variable)} = ${gen(d.initializer)};`)
     },
 
-    // define function: add(...) outputs number { ... }  →  function add_1(...) { ... }
     FunctionDeclaration(d) {
       const name   = targetName(d)
       const params = d.params.map(p => targetName(p)).join(', ')
@@ -42,7 +44,6 @@ export default function generate(program) {
       output.push('}')
     },
 
-    // group Student: name as string, gpa as number  →  class Student_1 { ... }
     GroupDeclaration(d) {
       const name = targetName(d)
       const fieldNames = d.fields.map(f => f.name)
@@ -113,6 +114,7 @@ export default function generate(program) {
     },
 
     BinaryExpression(e) {
+      // Map Pulsar word operators to their JS symbol equivalents.
       const opMap = { and: '&&', or: '||', '==': '===', '!=': '!==' }
       const op = opMap[e.op] ?? e.op
       return `(${gen(e.left)} ${op} ${gen(e.right)})`
@@ -125,6 +127,7 @@ export default function generate(program) {
     },
 
     Call(c) {
+      // Use targetName directly — dispatching through gen() would re-emit the function body.
       const callee = targetName(c.callee)
       const args   = c.args.map(gen).join(', ')
       return `${callee}(${args})`

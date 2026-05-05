@@ -1,3 +1,8 @@
+// ── Pulsar ───────────────────────────────────────────────────────────────────
+// generator.test.js
+// Stefan Cutovic
+// Test suite for the Pulsar code generator: verifies correct JavaScript output for every language construct.
+
 import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
 import parse from '../src/parser.js'
@@ -245,6 +250,7 @@ const fixtures = [
   },
 ]
 
+// Each fixture runs the full pipeline and compares the dedented JS output.
 describe('The code generator', () => {
   for (const fixture of fixtures) {
     it(`produces expected JS for ${fixture.name}`, () => {

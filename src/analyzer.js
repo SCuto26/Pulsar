@@ -1,13 +1,7 @@
+// ── Pulsar ───────────────────────────────────────────────────────────────────
 // analyzer.js
-// Accepts the Ohm match object from the parser and produces the fully-analyzed
-// Pulsar program representation. Performs all static checks:
-//   - Scope resolution (undeclared / redeclared identifiers)
-//   - Type checking on assignments, arguments, return values, operators
-//   - Argument count matching
-//   - stop only inside loops, output only inside functions
-//   - Return type compatibility
-//   - Duplicate group fields
-//   - No calling a non-function
+// Stefan Cutovic
+// Traverses the Ohm parse tree, builds the typed AST, and enforces all static constraints.
 
 import * as fs from 'node:fs'
 import * as ohm from 'ohm-js'
@@ -15,7 +9,7 @@ import * as core from './core.js'
 
 const grammar = ohm.grammar(fs.readFileSync('src/pulsar.ohm'))
 
-// ── Context (scope chain) ─────────────────────────────────────────────────────
+// ── Scope context ────────────────────────────────────────────────────────────────
 
 class Context {
   constructor({
