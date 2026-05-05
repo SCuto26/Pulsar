@@ -10,17 +10,16 @@ export default function generate(program) {
 
   // Each Pulsar entity gets a unique numeric suffix to avoid JS reserved word collisions.
   // e.g. a variable named 'class' becomes 'class_1' in the output.
-  const targetName = (mapping => {
-    return entity => {
+  const targetName = ((mapping) => {
+    return (entity) => {
       if (!mapping.has(entity)) mapping.set(entity, mapping.size + 1)
       return `${entity.name}_${mapping.get(entity)}`
     }
   })(new Map())
 
-  const gen = node => generators?.[node?.kind]?.(node) ?? node
+  const gen = (node) => generators?.[node?.kind]?.(node) ?? node
 
   const generators = {
-
     Program(p) {
       for (const s of p.statements) {
         const result = gen(s)
@@ -34,8 +33,8 @@ export default function generate(program) {
     },
 
     FunctionDeclaration(d) {
-      const name   = targetName(d)
-      const params = d.params.map(p => targetName(p)).join(', ')
+      const name = targetName(d)
+      const params = d.params.map((p) => targetName(p)).join(', ')
       output.push(`function ${name}(${params}) {`)
       for (const s of d.body) {
         const result = gen(s)
@@ -46,7 +45,7 @@ export default function generate(program) {
 
     GroupDeclaration(d) {
       const name = targetName(d)
-      const fieldNames = d.fields.map(f => f.name)
+      const fieldNames = d.fields.map((f) => f.name)
       output.push(`class ${name} {`)
       output.push(`constructor(${fieldNames.join(', ')}) {`)
       for (const f of fieldNames) {
@@ -73,7 +72,7 @@ export default function generate(program) {
     },
 
     IfStatement(s) {
-      const genBlock = stmts => {
+      const genBlock = (stmts) => {
         for (const stmt of stmts) {
           const result = gen(stmt)
           if (typeof result === 'string') output.push(`${result};`)
@@ -129,7 +128,7 @@ export default function generate(program) {
     Call(c) {
       // Use targetName directly — dispatching through gen() would re-emit the function body.
       const callee = targetName(c.callee)
-      const args   = c.args.map(gen).join(', ')
+      const args = c.args.map(gen).join(', ')
       return `${callee}(${args})`
     },
 

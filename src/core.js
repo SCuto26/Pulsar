@@ -5,11 +5,11 @@
 
 // ── Type constants ────────────────────────────────────────────────────────────
 
-export const NUMBER_TYPE  = 'number'
-export const STRING_TYPE  = 'string'
+export const NUMBER_TYPE = 'number'
+export const STRING_TYPE = 'string'
 export const BOOLEAN_TYPE = 'boolean'
-export const VOID_TYPE    = 'void'
-export const ANY_TYPE     = 'any'
+export const VOID_TYPE = 'void'
+export const ANY_TYPE = 'any'
 
 export function listType(baseType) {
   return { kind: 'ListType', baseType }
@@ -28,20 +28,25 @@ export function typesMatch(t1, t2) {
     return typesMatch(t1.baseType, t2.baseType)
   }
   if (t1?.kind === 'MapType' && t2?.kind === 'MapType') {
-    return typesMatch(t1.keyType, t2.keyType) && typesMatch(t1.valueType, t2.valueType)
+    return (
+      typesMatch(t1.keyType, t2.keyType) &&
+      typesMatch(t1.valueType, t2.valueType)
+    )
   }
   return false
 }
 
 // Human-readable type string used in error messages.
 export function typeDescription(t) {
-  if (t === NUMBER_TYPE)  return 'number'
-  if (t === STRING_TYPE)  return 'string'
+  if (t === NUMBER_TYPE) return 'number'
+  if (t === STRING_TYPE) return 'string'
   if (t === BOOLEAN_TYPE) return 'boolean'
-  if (t === VOID_TYPE)    return 'void'
-  if (t === ANY_TYPE)     return 'any'
-  if (t?.kind === 'ListType') return `list containing ${typeDescription(t.baseType)}`
-  if (t?.kind === 'MapType')  return `map linking ${typeDescription(t.keyType)} to ${typeDescription(t.valueType)}`
+  if (t === VOID_TYPE) return 'void'
+  if (t === ANY_TYPE) return 'any'
+  if (t?.kind === 'ListType')
+    return `list containing ${typeDescription(t.baseType)}`
+  if (t?.kind === 'MapType')
+    return `map linking ${typeDescription(t.keyType)} to ${typeDescription(t.valueType)}`
   return String(t)
 }
 

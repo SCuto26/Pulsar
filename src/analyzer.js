@@ -13,15 +13,15 @@ const grammar = ohm.grammar(fs.readFileSync('src/pulsar.ohm'))
 
 class Context {
   constructor({
-    parent      = null,
-    locals      = new Map(),
-    inLoop      = false,
-    inFunction  = false,
-    returnType  = core.VOID_TYPE,
+    parent = null,
+    locals = new Map(),
+    inLoop = false,
+    inFunction = false,
+    returnType = core.VOID_TYPE,
   } = {}) {
-    this.parent     = parent
-    this.locals     = locals
-    this.inLoop     = inLoop
+    this.parent = parent
+    this.locals = locals
+    this.inLoop = inLoop
     this.inFunction = inFunction
     this.returnType = returnType
   }
@@ -36,9 +36,9 @@ class Context {
 
   newChild(overrides = {}) {
     return new Context({
-      parent:     this,
-      locals:     new Map(),
-      inLoop:     this.inLoop,
+      parent: this,
+      locals: new Map(),
+      inLoop: this.inLoop,
       inFunction: this.inFunction,
       returnType: this.returnType,
       ...overrides,
@@ -61,7 +61,11 @@ export function must(condition, message, errorLocation) {
 
 Object.assign(must, {
   notAlreadyDeclared(context, name, at) {
-    must(!context.locals.has(name), `Identifier '${name}' already declared in this scope`, at)
+    must(
+      !context.locals.has(name),
+      `Identifier '${name}' already declared in this scope`,
+      at
+    )
   },
 
   haveBeenDeclared(entity, name, at) {
@@ -125,9 +129,13 @@ Object.assign(must, {
   },
 
   haveDistinctFields(fields, groupName, at) {
-    const names = fields.map(f => f.name)
+    const names = fields.map((f) => f.name)
     const unique = new Set(names)
-    must(unique.size === names.length, `Group '${groupName}' has duplicate fields`, at)
+    must(
+      unique.size === names.length,
+      `Group '${groupName}' has duplicate fields`,
+      at
+    )
   },
 
   beAList(exp, at) {
@@ -139,17 +147,13 @@ Object.assign(must, {
   },
 
   fieldExists(group, fieldName, at) {
-    const field = group.fields.find(f => f.name === fieldName)
+    const field = group.fields.find((f) => f.name === fieldName)
     must(field != null, `Group '${group.name}' has no field '${fieldName}'`, at)
     return field
   },
 
   notVoidReturn(exp, at) {
-    must(
-      exp.type !== core.VOID_TYPE,
-      `Cannot output a void expression`,
-      at
-    )
+    must(exp.type !== core.VOID_TYPE, `Cannot output a void expression`, at)
   },
 })
 
@@ -159,9 +163,8 @@ export default function analyze(match) {
   let context = Context.root()
 
   const builder = match.matcher.grammar.createSemantics().addOperation('rep', {
-
     Program(statements) {
-      return core.program(statements.children.map(s => s.rep()))
+      return core.program(statements.children.map((s) => s.rep()))
     },
 
     // ── Type resolution ───────────────────────────────────────────────────────
@@ -193,7 +196,18 @@ export default function analyze(match) {
     // ── Declarations ─────────────────────────────────────────────────────────
 
     // define function: add(x as number, y as number) outputs number { ... }
-    FunctionDecl(_define, _function, _colon, id, _open, params, _close, _outputs, returnType, block) {
+    FunctionDecl(
+      _define,
+      _function,
+      _colon,
+      id,
+      _open,
+      params,
+      _close,
+      _outputs,
+      returnType,
+      block
+    ) {
       const name = id.sourceString
       must.notAlreadyDeclared(context, name, { at: id })
 
@@ -217,13 +231,13 @@ export default function analyze(match) {
     },
 
     Params(paramList) {
-      return paramList.asIteration().children.map(p => p.rep())
+      return paramList.asIteration().children.map((p) => p.rep())
     },
 
     // x as number
     Param(id, _as, type) {
       const name = id.sourceString
-      const t    = type.rep()
+      const t = type.rep()
       must.notAlreadyDeclared(context, name, { at: id })
       const v = core.variable(name, t)
       context.add(name, v)
@@ -234,7 +248,7 @@ export default function analyze(match) {
     GroupDecl(_group, id, _colon, fields) {
       const name = id.sourceString
       must.notAlreadyDeclared(context, name, { at: id })
-      const fieldNodes = fields.asIteration().children.map(f => f.rep())
+      const fieldNodes = fields.asIteration().children.map((f) => f.rep())
       must.haveDistinctFields(fieldNodes, name, { at: id })
       const g = core.groupDeclaration(name, fieldNodes)
       context.add(name, g)
@@ -248,7 +262,7 @@ export default function analyze(match) {
 
     // let x as number be 5
     VarDecl(_let, id, _as, type, _be, exp) {
-      const name    = id.sourceString
+      const name = id.sourceString
       const declaredType = type.rep()
       must.notAlreadyDeclared(context, name, { at: id })
       const initializer = exp.rep()
@@ -260,7 +274,7 @@ export default function analyze(match) {
 
     // x be 10
     Assignment(id, _be, exp) {
-      const name   = id.sourceString
+      const name = id.sourceString
       const target = context.lookup(name)
       must.haveBeenDeclared(target, name, { at: id })
       // Only variables can be reassigned — not functions or groups
@@ -310,7 +324,7 @@ export default function analyze(match) {
 
     // go through each item in myList { ... }
     ForEachLoop(_goThrough, _each, iterator, _in, collection, block) {
-      const collName   = collection.sourceString
+      const collName = collection.sourceString
       const collEntity = context.lookup(collName)
       must.haveBeenDeclared(collEntity, collName, { at: collection })
       must.beAList(collEntity, { at: collection })
@@ -351,27 +365,27 @@ export default function analyze(match) {
     },
 
     Block(_open, statements, _close) {
-      return statements.children.map(s => s.rep())
+      return statements.children.map((s) => s.rep())
     },
 
     // ── Call as expression ────────────────────────────────────────────────────
 
     Call(id, _open, argList, _close) {
-      const name   = id.sourceString
+      const name = id.sourceString
       const callee = context.lookup(name)
       must.haveBeenDeclared(callee, name, { at: id })
       must.beAFunction(callee, name, { at: id })
 
-      const args = argList.asIteration().children.map(a => a.rep())
-      must.haveCorrectArgCount(args.length, callee.params.length, name, { at: id })
+      const args = argList.asIteration().children.map((a) => a.rep())
+      must.haveCorrectArgCount(args.length, callee.params.length, name, {
+        at: id,
+      })
 
       // Type-check each argument against its declared parameter type
       for (let i = 0; i < args.length; i++) {
-        must.beAssignable(
-          args[i].type,
-          callee.params[i].type,
-          { at: argList.asIteration().children[i] }
-        )
+        must.beAssignable(args[i].type, callee.params[i].type, {
+          at: argList.asIteration().children[i],
+        })
       }
 
       return core.call(callee, args, callee.returnType)
@@ -421,7 +435,11 @@ export default function analyze(match) {
       const l = left.rep()
       const r = right.rep()
       must.beNumericOrString(l, { at: left })
-      must(core.typesMatch(l.type, r.type), `Operand types must match for comparison`, { at: _op })
+      must(
+        core.typesMatch(l.type, r.type),
+        `Operand types must match for comparison`,
+        { at: _op }
+      )
       return core.binary('>=', l, r, core.BOOLEAN_TYPE)
     },
 
@@ -429,7 +447,11 @@ export default function analyze(match) {
       const l = left.rep()
       const r = right.rep()
       must.beNumericOrString(l, { at: left })
-      must(core.typesMatch(l.type, r.type), `Operand types must match for comparison`, { at: _op })
+      must(
+        core.typesMatch(l.type, r.type),
+        `Operand types must match for comparison`,
+        { at: _op }
+      )
       return core.binary('<=', l, r, core.BOOLEAN_TYPE)
     },
 
@@ -437,7 +459,11 @@ export default function analyze(match) {
       const l = left.rep()
       const r = right.rep()
       must.beNumericOrString(l, { at: left })
-      must(core.typesMatch(l.type, r.type), `Operand types must match for comparison`, { at: _op })
+      must(
+        core.typesMatch(l.type, r.type),
+        `Operand types must match for comparison`,
+        { at: _op }
+      )
       return core.binary('>', l, r, core.BOOLEAN_TYPE)
     },
 
@@ -445,7 +471,11 @@ export default function analyze(match) {
       const l = left.rep()
       const r = right.rep()
       must.beNumericOrString(l, { at: left })
-      must(core.typesMatch(l.type, r.type), `Operand types must match for comparison`, { at: _op })
+      must(
+        core.typesMatch(l.type, r.type),
+        `Operand types must match for comparison`,
+        { at: _op }
+      )
       return core.binary('<', l, r, core.BOOLEAN_TYPE)
     },
 
@@ -453,7 +483,9 @@ export default function analyze(match) {
       const l = left.rep()
       const r = right.rep()
       must.beNumericOrString(l, { at: left })
-      must(core.typesMatch(l.type, r.type), `Operand types must match for +`, { at: _op })
+      must(core.typesMatch(l.type, r.type), `Operand types must match for +`, {
+        at: _op,
+      })
       return core.binary('+', l, r, l.type)
     },
 
@@ -509,13 +541,15 @@ export default function analyze(match) {
 
     // object.field
     Primary_field(objectId, _dot, fieldId) {
-      const name   = objectId.sourceString
+      const name = objectId.sourceString
       const entity = context.lookup(name)
       must.haveBeenDeclared(entity, name, { at: objectId })
 
       // Validate field name when accessing directly on a group declaration
       if (entity?.kind === 'GroupDeclaration') {
-        const field = must.fieldExists(entity, fieldId.sourceString, { at: fieldId })
+        const field = must.fieldExists(entity, fieldId.sourceString, {
+          at: fieldId,
+        })
         return core.fieldAccess(entity, fieldId.sourceString, field.type)
       }
 
@@ -541,7 +575,7 @@ export default function analyze(match) {
     },
 
     Primary_list(_open, elements, _close) {
-      const elems = elements.asIteration().children.map(e => e.rep())
+      const elems = elements.asIteration().children.map((e) => e.rep())
       if (elems.length === 0) {
         // Empty list — type cannot be inferred here; assign any list
         return core.listExpression(elems, core.listType(core.ANY_TYPE))
@@ -559,7 +593,7 @@ export default function analyze(match) {
     },
 
     Primary_map(_open, entries, _close) {
-      const entryNodes = entries.asIteration().children.map(e => e.rep())
+      const entryNodes = entries.asIteration().children.map((e) => e.rep())
       // All values must have the same type; keys are always strings (string literals)
       const valueType = entryNodes[0].value.type
       for (let i = 1; i < entryNodes.length; i++) {
@@ -569,7 +603,10 @@ export default function analyze(match) {
           { at: entries }
         )
       }
-      return core.mapExpression(entryNodes, core.mapType(core.STRING_TYPE, valueType))
+      return core.mapExpression(
+        entryNodes,
+        core.mapType(core.STRING_TYPE, valueType)
+      )
     },
 
     Primary_parens(_open, exp, _close) {
@@ -577,7 +614,7 @@ export default function analyze(match) {
     },
 
     Primary_id(id) {
-      const name   = id.sourceString
+      const name = id.sourceString
       const entity = context.lookup(name)
       must.haveBeenDeclared(entity, name, { at: id })
       return entity
@@ -586,8 +623,7 @@ export default function analyze(match) {
     MapEntry(key, _arrow, value) {
       return core.mapEntry(key.sourceString, value.rep())
     },
-
-    })
+  })
 
   return builder(match).rep()
 }

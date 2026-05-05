@@ -10,13 +10,17 @@ import analyze from '../src/analyzer.js'
 import optimize from '../src/optimizer.js'
 import generate from '../src/generator.js'
 
-const js = src => generate(optimize(analyze(parse(src))))
+const js = (src) => generate(optimize(analyze(parse(src))))
 
 function dedent(stringsOrStr, ...values) {
   const s = Array.isArray(stringsOrStr)
     ? stringsOrStr.reduce((acc, str, i) => acc + (values[i - 1] ?? '') + str)
     : stringsOrStr
-  return s.split('\n').map(l => l.trim()).filter(l => l.length > 0).join('\n')
+  return s
+    .split('\n')
+    .map((l) => l.trim())
+    .filter((l) => l.length > 0)
+    .join('\n')
 }
 
 const fixtures = [
@@ -79,7 +83,8 @@ const fixtures = [
   },
   {
     name: 'and maps to &&',
-    source: 'let x as boolean be true\nlet z as boolean be false\nlet y as boolean be x and z',
+    source:
+      'let x as boolean be true\nlet z as boolean be false\nlet y as boolean be x and z',
     expected: dedent`
       let x_1 = true;
       let z_2 = false;
@@ -88,7 +93,8 @@ const fixtures = [
   },
   {
     name: 'or maps to ||',
-    source: 'let x as boolean be true\nlet z as boolean be false\nlet y as boolean be x or z',
+    source:
+      'let x as boolean be true\nlet z as boolean be false\nlet y as boolean be x or z',
     expected: dedent`
       let x_1 = true;
       let z_2 = false;
@@ -131,7 +137,8 @@ const fixtures = [
   },
   {
     name: 'if otherwise statement',
-    source: 'let flag as boolean be true\nif flag { display "yes" } otherwise { display "no" }',
+    source:
+      'let flag as boolean be true\nif flag { display "yes" } otherwise { display "no" }',
     expected: dedent`
       let flag_1 = true;
       if (flag_1) {
@@ -154,7 +161,8 @@ const fixtures = [
   },
   {
     name: 'foreach loop',
-    source: 'let items as list containing number be [1, 2]\ngo through each item in items { display item }',
+    source:
+      'let items as list containing number be [1, 2]\ngo through each item in items { display item }',
     expected: dedent`
       let items_1 = [1, 2];
       for (let item_2 of items_1) {
@@ -164,7 +172,8 @@ const fixtures = [
   },
   {
     name: 'function with typed params and return',
-    source: 'define function: double(n as number) outputs number { output n * 2 }',
+    source:
+      'define function: double(n as number) outputs number { output n * 2 }',
     expected: dedent`
       function double_1(n_2) {
       return (n_2 * 2);
@@ -173,7 +182,8 @@ const fixtures = [
   },
   {
     name: 'function call result assigned',
-    source: 'define function: double(n as number) outputs number { output n * 2 }\nlet x as number be double(5)',
+    source:
+      'define function: double(n as number) outputs number { output n * 2 }\nlet x as number be double(5)',
     expected: dedent`
       function double_1(n_2) {
       return (n_2 * 2);
@@ -210,12 +220,14 @@ const fixtures = [
   },
   {
     name: 'map literal',
-    source: 'let m as map linking string to number be {"score" -> 99, "bonus" -> 5}',
+    source:
+      'let m as map linking string to number be {"score" -> 99, "bonus" -> 5}',
     expected: 'let m_1 = { "score": 99, "bonus": 5 };',
   },
   {
     name: 'map linking string to string',
-    source: 'let labels as map linking string to string be {"a" -> "alpha", "b" -> "beta"}',
+    source:
+      'let labels as map linking string to string be {"a" -> "alpha", "b" -> "beta"}',
     expected: 'let labels_1 = { "a": "alpha", "b": "beta" };',
   },
   {
@@ -258,7 +270,8 @@ const fixtures = [
   },
   {
     name: 'call as statement inside function body',
-    source: 'define function: log() outputs void { display "x" }\ndefine function: f() outputs void { log() }\nf()',
+    source:
+      'define function: log() outputs void { display "x" }\ndefine function: f() outputs void { log() }\nf()',
     expected: dedent`
       function log_1() {
       console.log("x");
@@ -271,7 +284,8 @@ const fixtures = [
   },
   {
     name: 'call as statement inside if and otherwise bodies',
-    source: 'define function: log() outputs void { display "x" }\nlet flag as boolean be true\nif flag { log() } otherwise { log() }',
+    source:
+      'define function: log() outputs void { display "x" }\nlet flag as boolean be true\nif flag { log() } otherwise { log() }',
     expected: dedent`
       function log_1() {
       console.log("x");
@@ -286,7 +300,8 @@ const fixtures = [
   },
   {
     name: 'call as statement inside short if body',
-    source: 'define function: log() outputs void { display "x" }\nlet flag as boolean be true\nif flag { log() }',
+    source:
+      'define function: log() outputs void { display "x" }\nlet flag as boolean be true\nif flag { log() }',
     expected: dedent`
       function log_1() {
       console.log("x");
@@ -299,7 +314,8 @@ const fixtures = [
   },
   {
     name: 'call as statement inside while body',
-    source: 'define function: log() outputs void { display "x" }\nlet go as boolean be true\nas long as go { log()\ngo be false }',
+    source:
+      'define function: log() outputs void { display "x" }\nlet go as boolean be true\nas long as go { log()\ngo be false }',
     expected: dedent`
       function log_1() {
       console.log("x");
@@ -313,7 +329,8 @@ const fixtures = [
   },
   {
     name: 'call as statement inside foreach body',
-    source: 'define function: log() outputs void { display "x" }\nlet items as list containing number be [1]\ngo through each n in items { log() }',
+    source:
+      'define function: log() outputs void { display "x" }\nlet items as list containing number be [1]\ngo through each n in items { log() }',
     expected: dedent`
       function log_1() {
       console.log("x");
